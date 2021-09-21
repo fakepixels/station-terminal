@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+
 import { useAccount, useContract } from '../shared/contexts';
 
 const Title = styled.h1`
