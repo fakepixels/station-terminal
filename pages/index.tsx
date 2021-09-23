@@ -14,11 +14,26 @@ const ContributionModalButton = styled.button`
   background-color: #85d59a;
 `;
 
+const BackgroundWrapper = styled.div`
+  position: absolute;
+  top: 0px;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+  min-width: 100px;
+  min-height: 400px;
+  background: linear-gradient(#ffffff, #ff816e);
+`;
+
+const Background = () => {
+  return <BackgroundWrapper></BackgroundWrapper>;
+};
+
 const Home = (): JSX.Element => {
   const contract = useContract();
   const account = useAccount();
 
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
   const handleClose = () => {
     setIsOpen(false);
   };
@@ -28,23 +43,16 @@ const Home = (): JSX.Element => {
 
   return (
     <>
+      <Background />
       <Title>Station terminal</Title>
       <ContributionModalButton
         onClick={() => {
-          setIsOpen(false);
+          setIsOpen(true);
         }}
       >
         Contributions
       </ContributionModalButton>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-        occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-        mollit anim id est laborum.
-      </p>
+
       <ContributionModal isOpen={isOpen} onRequestClose={handleClose}>
         <p>This is the contribution modal</p>
       </ContributionModal>
