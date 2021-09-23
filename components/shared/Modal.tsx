@@ -50,7 +50,7 @@ const Header = ({
   <HeaderWrapper>
     {mandatory ? null : (
       <CloseButton onClick={onRequestClose}>
-        <img src="/Close.png" alt="close button" />
+        <img src="/Close.svg" alt="close button" />
       </CloseButton>
     )}
     <HeaderLinesContainer>
