@@ -5,7 +5,7 @@ export const globalStyles = (
     styles={css`
       html,
       body {
-        font-family: Helvetica, Arial, sans-serif;
+        font-family: 'Public Sans';
       }
     `}
   />
