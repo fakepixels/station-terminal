@@ -1,5 +1,6 @@
-// import App from "next/app";
-import type { AppProps /*, AppContext */ } from 'next/app';
+import type { AppProps } from 'next/app';
+import type { NextPage } from 'next';
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { useInterval } from 'react-use';
@@ -12,10 +13,20 @@ import contractJson from '../public/contractABI';
 
 declare const window: any;
 
-function MyApp({ Component, pageProps }: AppProps): JSX.Element {
+type NextPageWithLayout = NextPage & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
   const [contract, setContract] = React.useState<any>(undefined);
   const [web3, setWeb3] = React.useState<any>(undefined);
+
+  const getLayout = Component.getLayout ?? ((page) => page);
 
   React.useEffect(() => {
     const contractAddress = process.env.NEXT_PUBLIC_MEM_CONTRACT_ADDRESS;
@@ -33,7 +44,6 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
       setContract(contract);
     } else {
       console.log('No web3? You should consider trying MetaMask!');
-      // TODO pop up a modal if no metamask
     }
   }, []);
 
@@ -51,7 +61,7 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
       <accountContext.Provider value={account}>
         <contractContext.Provider value={contract}>
           {globalStyles}
-          <Component {...pageProps} />
+          {getLayout(<Component {...pageProps} />)}
         </contractContext.Provider>
       </accountContext.Provider>
     </ApolloProvider>

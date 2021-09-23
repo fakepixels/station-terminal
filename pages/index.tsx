@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+import type { ReactElement } from 'react';
 import ContributionModal from '../components/Contributions/ContributionsModal';
+import Layout from '../components/shared/Layout';
 
 import { useAccount, useContract } from '../shared/contexts';
 
@@ -12,7 +14,7 @@ const ContributionModalButton = styled.button`
   background-color: #85d59a;
 `;
 
-export const Home = (): JSX.Element => {
+const Home = (): JSX.Element => {
   const contract = useContract();
   const account = useAccount();
 
@@ -29,7 +31,7 @@ export const Home = (): JSX.Element => {
       <Title>Station terminal</Title>
       <ContributionModalButton
         onClick={() => {
-          setIsOpen(true);
+          setIsOpen(false);
         }}
       >
         Contributions
@@ -48,6 +50,10 @@ export const Home = (): JSX.Element => {
       </ContributionModal>
     </>
   );
+};
+
+Home.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default Home;
