@@ -1,8 +1,10 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
 import type { ReactElement } from 'react';
+
 import ContributionModal from '../components/Contributions/ContributionsModal';
 import Layout from '../components/shared/Layout';
+import TopBar from '../components/shared/TopBar';
 
 import { useAccount, useContract } from '../shared/contexts';
 
@@ -136,7 +138,11 @@ const ContributorsListWrapper = styled.div`
 `;
 
 const ContributorsList = (): JSX.Element => {
-  return <ContributorsListWrapper></ContributorsListWrapper>;
+  return (
+    <ContributorsListWrapper>
+      <TopBar mandatory={false} />
+    </ContributorsListWrapper>
+  );
 };
 
 const DAOSummaryWrapper = styled.div`
