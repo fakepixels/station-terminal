@@ -9,6 +9,11 @@ export const globalStyles = (
         margin: 0;
         font-family: 'Public Sans';
       }
+
+      @font-face {
+        font-family: 'Resistance';
+        src: url('/fonts/resistance.otf') format('opentype');
+      }
     `}
   />
 );
