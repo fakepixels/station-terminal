@@ -1,14 +1,16 @@
 // import App from "next/app";
-import type { AppProps /*, AppContext */ } from 'next/app';
 import React from 'react';
+import Web3 from 'web3';
+import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
 import { useInterval } from 'react-use';
-import Web3 from 'web3';
-
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
+import { theme } from '../shared/style/theme';
 import { accountContext, contractContext } from '../shared/contexts';
 import contractJson from '../public/contractABI';
+
+import type { AppProps /*, AppContext */ } from 'next/app';
 
 declare const window: any;
 
@@ -51,7 +53,9 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
       <accountContext.Provider value={account}>
         <contractContext.Provider value={contract}>
           {globalStyles}
-          <Component {...pageProps} />
+          <ThemeProvider theme={theme}>
+            <Component {...pageProps} />
+          </ThemeProvider>
         </contractContext.Provider>
       </accountContext.Provider>
     </ApolloProvider>
