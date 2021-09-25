@@ -8,16 +8,13 @@ interface ButtonMainProps {
 }
 
 const ButtonMain = styled.button<ButtonMainProps>`
-  color: ${(props) => props.theme.colors.white};
-  background-color: ${(props) =>
-    props.secondary
-      ? props.theme.colors.secondary
-      : props.theme.colors.primary};
+  color: ${(props) => props.theme.colors.black};
+  background-color: ${(props) => props.theme.colors.green};
   padding: 9px 18px;
   outline: none;
-  border: none;
+  border: 1px solid ${(props) => props.theme.colors.black};
   border-radius: 100px;
-  font-family: inherit;
+  font-family: Favorit Pro;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -29,7 +26,8 @@ const ButtonMain = styled.button<ButtonMainProps>`
   align-items: center;
   justify-content: center;
 
-  width: ${(props) => (props.width ? props.width : '100px')};
+  height: 40px;
+  width: ${(props) => (props.width ? props.width : '205px')};
   pointer-events: ${(props) => props.disabled && 'none'};
 
   &:hover {
@@ -54,7 +52,7 @@ const Button = (props: ownProps) => {
     <ButtonMain
       secondary={secondary || false}
       disabled={disabled || false}
-      width={width || '100px'}
+      width={width}
       onClick={onClick}
       {...otherProps}
     >

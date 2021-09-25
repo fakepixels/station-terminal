@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import * as React from 'react';
 import type { ReactElement } from 'react';
 
+import Button from '../components/shared/Button';
 import ContributionModal from '../components/Contributions/ContributionsModal';
 import Layout from '../components/shared/Layout';
 import TopBar from '../components/shared/TopBar';
@@ -12,10 +13,6 @@ const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-`;
-
-const ContributionModalButton = styled.button`
-  background-color: #85d59a;
 `;
 
 const BackgroundWrapper = styled.div`
@@ -41,7 +38,7 @@ const Background = () => {
   );
 };
 
-const FooterWrapper = styled.div`
+const Footer = styled.div`
   width: 100%;
   height: 226px;
   background-image: url('/StationFloor.png');
@@ -57,39 +54,17 @@ const FooterStat = (): JSX.Element => {
   return <div>Stat</div>;
 };
 
-const FooterStats = (): JSX.Element => {
-  return (
-    <div>
-      <FooterStat />
-      <FooterStat />
-      <FooterStat />
-    </div>
-  );
-};
+const FooterStats = styled.div``;
 
-const FooterActionsWrapper = styled.div`
+const FooterActions = styled.div`
   display: flex;
   flex-direction: column;
+  margin-right: 20px;
 `;
 
-const FooterActions = (): JSX.Element => {
-  return (
-    <FooterActionsWrapper>
-      <div>Action 1</div>
-      <div>Action 2</div>
-      <div>Action 3</div>
-    </FooterActionsWrapper>
-  );
-};
-
-const Footer = () => {
-  return (
-    <FooterWrapper>
-      <FooterStats />
-      <FooterActions />
-    </FooterWrapper>
-  );
-};
+const FooterActionButton = styled(Button)`
+  margin-top: 10px;
+`;
 
 const TitleWrapper = styled.div`
   margin: 90px 0px 50px 0px;
@@ -354,17 +329,45 @@ const Home = (): JSX.Element => {
           </ContributionModal>
         </div> */}
       </PageWrapper>
+      <Footer>
+        <FooterStats>
+          <FooterStat />
+          <FooterStat />
+          <FooterStat />
+        </FooterStats>
+        <FooterActions>
+          <FooterActionButton
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            REWARD
+          </FooterActionButton>
+          <FooterActionButton
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            ENDORSE
+          </FooterActionButton>
+          <FooterActionButton
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            CLAIM REWARDS
+          </FooterActionButton>
+        </FooterActions>
+      </Footer>
+      <ContributionModal isOpen={isOpen} onRequestClose={handleClose}>
+        <p>This is the contribution modal</p>
+      </ContributionModal>
     </>
   );
 };
 
 Home.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <Layout>
-      {page}
-      <Footer></Footer>
-    </Layout>
-  );
+  return <Layout>{page}</Layout>;
 };
 
 export default Home;
