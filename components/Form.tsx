@@ -79,7 +79,7 @@ export const Form = ({
   isDisabled = false,
 }: FormProps): JSX.Element => {
   const [formData, setFormData] = React.useState<FormData>(
-    createFormData(inputs)
+    createFormData(inputs),
   );
 
   const [result, setResult] = React.useState<string>('');

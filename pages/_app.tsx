@@ -2,12 +2,14 @@ import type { AppProps } from 'next/app';
 import type { NextPage } from 'next';
 import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
+import Web3 from 'web3';
+import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
 import { useInterval } from 'react-use';
-import Web3 from 'web3';
 
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
+import { theme } from '../shared/style/theme';
 import { accountContext, contractContext } from '../shared/contexts';
 import contractJson from '../public/contractABI';
 
@@ -61,7 +63,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
       <accountContext.Provider value={account}>
         <contractContext.Provider value={contract}>
           {globalStyles}
-          {getLayout(<Component {...pageProps} />)}
+          <ThemeProvider theme={theme}>
+            {getLayout(<Component {...pageProps} />)}
+          </ThemeProvider>
         </contractContext.Provider>
       </accountContext.Provider>
     </ApolloProvider>
