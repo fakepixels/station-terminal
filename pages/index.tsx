@@ -25,8 +25,18 @@ const BackgroundWrapper = styled.div`
   background: linear-gradient(#ffffff, #ff816e);
 `;
 
+const BackgroundGrid = styled.div`
+  height: 100%;
+  width: 100%;
+  background-image: url('/Grid.svg');
+`;
+
 const Background = () => {
-  return <BackgroundWrapper></BackgroundWrapper>;
+  return (
+    <BackgroundWrapper>
+      <BackgroundGrid></BackgroundGrid>
+    </BackgroundWrapper>
+  );
 };
 
 const FooterWrapper = styled.div`
@@ -34,16 +44,53 @@ const FooterWrapper = styled.div`
   height: 226px;
   background-image: url('/StationFloor.png');
   position: fixed;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   left: 0;
   bottom: 0;
 `;
 
+const FooterStat = (): JSX.Element => {
+  return <div>Stat</div>;
+};
+
+const FooterStats = (): JSX.Element => {
+  return (
+    <div>
+      <FooterStat />
+      <FooterStat />
+      <FooterStat />
+    </div>
+  );
+};
+
+const FooterActionsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const FooterActions = (): JSX.Element => {
+  return (
+    <FooterActionsWrapper>
+      <div>Action 1</div>
+      <div>Action 2</div>
+      <div>Action 3</div>
+    </FooterActionsWrapper>
+  );
+};
+
 const Footer = () => {
-  return <FooterWrapper></FooterWrapper>;
+  return (
+    <FooterWrapper>
+      <FooterStats />
+      <FooterActions />
+    </FooterWrapper>
+  );
 };
 
 const TitleWrapper = styled.div`
-  margin: 90px 0px 30px 0px;
+  margin: 90px 0px 50px 0px;
   width: 401px;
   height: 123px;
   padding: 4px;
@@ -60,16 +107,48 @@ const TitleBorderInset = styled.div`
 `;
 
 const TitleText = styled.h1`
+  font-family: Resistance;
+  font-size: 80px;
   color: #f2efef;
 `;
 
 const Title = ({ daoName }: { daoName: string }): JSX.Element => (
   <TitleWrapper>
     <TitleBorderInset>
-      <TitleText>{daoName}</TitleText>
+      <TitleText>{daoName.toUpperCase()}</TitleText>
     </TitleBorderInset>
   </TitleWrapper>
 );
+
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: space-around;
+  width: 100%;
+`;
+
+const ContributorsListWrapper = styled.div`
+  background-color: #feecde;
+  height: 461px;
+  width: 408px;
+  margin-left: 10px;
+`;
+
+const ContributorsList = (): JSX.Element => {
+  return <ContributorsListWrapper></ContributorsListWrapper>;
+};
+
+const DAOSummaryWrapper = styled.div`
+  background-color: #090909;
+  margin: 50px 10px 0px 0px;
+  height: 347px;
+  width: 355px;
+`;
+
+const DAOSummary = (): JSX.Element => {
+  return <DAOSummaryWrapper></DAOSummaryWrapper>;
+};
 
 const Home = (): JSX.Element => {
   const contract = useContract();
@@ -88,7 +167,11 @@ const Home = (): JSX.Element => {
       <Background />
       <PageWrapper>
         <Title daoName={'Default'} />
-        <div>
+        <ContentWrapper>
+          <ContributorsList />
+          <DAOSummary />
+        </ContentWrapper>
+        {/* <div>
           <ContributionModalButton
             onClick={() => {
               setIsOpen(true);
@@ -100,7 +183,7 @@ const Home = (): JSX.Element => {
           <ContributionModal isOpen={isOpen} onRequestClose={handleClose}>
             <p>This is the contribution modal</p>
           </ContributionModal>
-        </div>
+        </div> */}
       </PageWrapper>
     </>
   );
