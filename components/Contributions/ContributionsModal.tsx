@@ -8,15 +8,15 @@ const ContributionModalWrapper = styled(Modal)`
   left: 0px;
   right: 0px;
   bottom: initial;
-  border: 1px solid #f2efef;
+  border: 1px solid #${(props) => props.theme.colors.white};
   overflow: auto;
   border-radius: 8px;
   outline: none;
   margin: 0 auto 0 auto;
 
   min-height: 592px;
-  background: #090909;
-  color: white;
+  background: ${(props) => props.theme.colors.black};
+  color: ${(props) => props.theme.colors.white};
 
   @media (min-width: 768px) {
     top: 10vh;

@@ -60,7 +60,7 @@ const FooterStatWrapper = styled.div`
   flex-direction: column;
   font-family: Resistance;
   font-size: 48px;
-  color: white;
+  color: ${(props) => props.theme.colors.white};
 `;
 
 const FooterStatDescription = styled.p`
@@ -113,7 +113,7 @@ const TitleWrapper = styled.div`
   width: 401px;
   height: 123px;
   padding: 4px;
-  background-color: #090909;
+  background-color: ${(props) => props.theme.colors.black};
   @media (max-height: 830px) {
     width: 200px;
     height: 61px;
@@ -124,7 +124,7 @@ const TitleWrapper = styled.div`
 const TitleBorderInset = styled.div`
   width: 100%;
   height: 100%;
-  border: 1px solid #f2efef;
+  border: 1px solid ${(props) => props.theme.colors.white};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,7 +132,7 @@ const TitleBorderInset = styled.div`
 
 const TitleText = styled.h1`
   font-family: Resistance;
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   margin: 0px;
   font-size: 80px;
   @media (max-height: 830px) {
@@ -238,7 +238,7 @@ const DaoSummaryContibutionsWrapper = styled.div``;
 const DaoSummaryContibutionsTitle = styled.div`
   font-family: Terminal;
   font-size: 30px;
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   margin: 20px 16px 0px;
 `;
 
@@ -246,19 +246,19 @@ const DaoSummaryContibutionsGrid = styled.div`
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: 20px 20px;
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   margin: 12px 16px 20px;
 `;
 
 const DaoSummaryLabel = styled.p`
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   font-size: 14px;
   font-family: Favorit Pro;
 `;
 
 const DaoSummaryValue = styled.p`
   text-align: right;
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   font-size: 14px;
   font-family: Favorit Pro;
 `;
@@ -277,7 +277,7 @@ const DaoSummaryTextWrapper = styled.div`
 `;
 
 const DAOSummaryText = styled.p`
-  color: #f2efef;
+  color: ${(props) => props.theme.colors.white};
   font-size: 14px;
   font-family: Favorit Pro;
 `;
@@ -292,7 +292,7 @@ const DocsLinkArrowIcon = styled.img`
 `;
 
 const DocsLinkText = styled.p`
-  color: #85d59a;
+  color: ${(props) => props.theme.colors.green};
   font-size: 14px;
   font-family: Favorit Pro;
   margin: 0px;
@@ -370,19 +370,6 @@ const Home = (): JSX.Element => {
           <ContributorsList />
           <DAOSummary />
         </ContentWrapper>
-        {/* <div>
-          <ContributionModalButton
-            onClick={() => {
-              setIsOpen(true);
-            }}
-          >
-            Contributions
-          </ContributionModalButton>
-
-          <ContributionModal isOpen={isOpen} onRequestClose={handleClose}>
-            <p>This is the contribution modal</p>
-          </ContributionModal>
-        </div> */}
       </PageWrapper>
       <Footer>
         <FooterStats>
