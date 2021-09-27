@@ -55,11 +55,42 @@ const Footer = styled.div`
   }
 `;
 
-const FooterStat = (): JSX.Element => {
-  return <div>Stat</div>;
+const FooterStatWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  font-family: Resistance;
+  font-size: 48px;
+  color: white;
+`;
+
+const FooterStatDescription = styled.p`
+  font-size: 20px;
+  margin: 0px;
+`;
+
+const FooterStatValue = styled.p`
+  margin: 0px;
+`;
+
+const FooterStat = ({
+  description,
+  value,
+}: {
+  description: string;
+  value: string;
+}): JSX.Element => {
+  return (
+    <FooterStatWrapper>
+      <FooterStatValue>{value}</FooterStatValue>
+      <FooterStatDescription>{description}</FooterStatDescription>
+    </FooterStatWrapper>
+  );
 };
 
 const FooterStats = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
   @media (max-width: 760px) {
     display: none;
   }
@@ -355,9 +386,12 @@ const Home = (): JSX.Element => {
       </PageWrapper>
       <Footer>
         <FooterStats>
-          <FooterStat />
-          <FooterStat />
-          <FooterStat />
+          <FooterStat description={'YOUR TOTAL $DEF'} value={'44,000'} />
+          <FooterStat description={'YOUR OWNERSHIP'} value={'3%'} />
+          <FooterStat
+            description={'TOTAL ENDORSEMENTS RECEIVED'}
+            value={'1,235'}
+          />
         </FooterStats>
         <FooterActions>
           <FooterActionButton
