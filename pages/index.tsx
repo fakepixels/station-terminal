@@ -4,6 +4,8 @@ import type { ReactElement } from 'react';
 
 import Button from '../components/shared/Button';
 import ContributionModal from '../components/Contributions/ContributionsModal';
+import ClaimRewardsModal from '../components/ClaimRewards/ClaimRewardsModal';
+import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
 import Layout from '../components/shared/Layout';
 import TopBar from '../components/shared/TopBar';
 
@@ -353,9 +355,20 @@ const Home = (): JSX.Element => {
   const contract = useContract();
   const account = useAccount();
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const handleClose = () => {
-    setIsOpen(false);
+  const [isContributionModalOpen, setIsContributionModalOpen] =
+    React.useState(false);
+  const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
+    React.useState(false);
+  const [isGiveRewardsModalOpen, setIsGiveRewardsModalOpen] =
+    React.useState(false);
+  const handleCloseContributionModal = () => {
+    setIsContributionModalOpen(false);
+  };
+  const handleCloseClaimRewardsModal = () => {
+    setIsClaimRewardsModalOpen(false);
+  };
+  const handleCloseGiveRewardsModal = () => {
+    setIsGiveRewardsModalOpen(false);
   };
 
   console.log('contract is ', contract);
@@ -383,30 +396,39 @@ const Home = (): JSX.Element => {
         <FooterActions>
           <FooterActionButton
             onClick={() => {
-              setIsOpen(true);
+              setIsGiveRewardsModalOpen(true);
             }}
           >
             REWARD
           </FooterActionButton>
           <FooterActionButton
             onClick={() => {
-              setIsOpen(true);
+              setIsContributionModalOpen(true);
             }}
           >
             ENDORSE
           </FooterActionButton>
           <FooterActionButton
             onClick={() => {
-              setIsOpen(true);
+              setIsClaimRewardsModalOpen(true);
             }}
           >
             CLAIM REWARDS
           </FooterActionButton>
         </FooterActions>
       </Footer>
-      <ContributionModal isOpen={isOpen} onRequestClose={handleClose}>
-        <p>This is the contribution modal</p>
-      </ContributionModal>
+      <ContributionModal
+        isOpen={isContributionModalOpen}
+        onRequestClose={handleCloseContributionModal}
+      />
+      <ClaimRewardsModal
+        isOpen={isClaimRewardsModalOpen}
+        onRequestClose={handleCloseClaimRewardsModal}
+      />
+      <GiveRewardsModal
+        isOpen={isGiveRewardsModalOpen}
+        onRequestClose={handleCloseGiveRewardsModal}
+      />
     </>
   );
 };
