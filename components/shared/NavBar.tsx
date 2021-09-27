@@ -57,7 +57,7 @@ const DropdownImage = styled.img`
 `;
 
 const DropownAddress = styled.div`
-  @media (max-width: 540px) {
+  @media (max-width: 480px) {
     display: none;
   }
 `;

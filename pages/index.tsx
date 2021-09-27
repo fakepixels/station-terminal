@@ -40,7 +40,7 @@ const Background = () => {
 
 const Footer = styled.div`
   width: 100%;
-  height: 226px;
+  height: 160px;
   background-image: url('/StationFloor.png');
   position: fixed;
   display: flex;
@@ -48,30 +48,46 @@ const Footer = styled.div`
   align-items: flex-end;
   left: 0;
   bottom: 0;
+  padding: 10px;
+
+  @media (max-width: 760px) {
+    justify-content: center;
+  }
 `;
 
 const FooterStat = (): JSX.Element => {
   return <div>Stat</div>;
 };
 
-const FooterStats = styled.div``;
+const FooterStats = styled.div`
+  @media (max-width: 760px) {
+    display: none;
+  }
+`;
 
 const FooterActions = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+  align-items: center;
   margin-right: 20px;
 `;
 
-const FooterActionButton = styled(Button)`
-  margin-top: 10px;
-`;
+const FooterActionButton = styled(Button)``;
 
 const TitleWrapper = styled.div`
-  margin: 90px 0px 50px 0px;
+  margin: 50px 0px;
   width: 401px;
   height: 123px;
   padding: 4px;
   background-color: #090909;
+  @media (max-height: 830px) {
+    width: 200px;
+    height: 61px;
+    margin: 30px 0px;
+  }
 `;
 
 const TitleBorderInset = styled.div`
@@ -85,8 +101,12 @@ const TitleBorderInset = styled.div`
 
 const TitleText = styled.h1`
   font-family: Resistance;
-  font-size: 80px;
   color: #f2efef;
+  margin: 0px;
+  font-size: 80px;
+  @media (max-height: 830px) {
+    font-size: 40px;
+  }
 `;
 
 const Title = ({ daoName }: { daoName: string }): JSX.Element => (
@@ -103,13 +123,17 @@ const ContentWrapper = styled.div`
   gap: 20px;
   justify-content: space-around;
   width: 100%;
+  @media (max-width: 760px) {
+    flex-direction: column-reverse;
+    align-items: center;
+    padding: 10px;
+  }
 `;
 
 const ContributorsListWrapper = styled.div`
   background-color: #feecde;
   height: 461px;
-  width: 408px;
-  margin-left: 10px;
+  max-width: 408px;
   overflow: scroll;
 `;
 

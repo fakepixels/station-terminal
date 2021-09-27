@@ -8,6 +8,7 @@ export const globalStyles = (
         padding: 0;
         margin: 0;
         font-family: 'Public Sans';
+        margin-bottom: 160px;
       }
 
       @font-face {
