@@ -1,7 +1,9 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
 import type { ReactElement } from 'react';
+import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
+import { useWeb3, useContracts } from '../../shared/contexts';
 
 import Button from '../../components/shared/Button';
 import ContributionModal from '../../components/Contributions/ContributionsModal';
@@ -9,6 +11,13 @@ import ClaimRewardsModal from '../../components/ClaimRewards/ClaimRewardsModal';
 import GiveRewardsModal from '../../components/GiveRewards/GiveRewardsModal';
 import Layout from '../../components/shared/Layout';
 import TopBar from '../../components/shared/TopBar';
+
+import defaultOSFactoryABI from '../../utils/abi/DefaultOSFactory.json';
+import defaultOSABI from '../../utils/abi/DefaultOS.json';
+import epochABI from '../../utils/abi/Epoch.json';
+import membersABI from '../../utils/abi/Members.json';
+import peerRewardsABI from '../../utils/abi/PeerRewards.json';
+import tokenABI from '../../utils/abi/Token.json';
 
 const PageWrapper = styled.div`
   display: flex;
@@ -142,7 +151,6 @@ const TitleText = styled.h1`
 `;
 
 const Title = ({ daoName }: { daoName: string }): JSX.Element => {
-  console.log(daoName);
   return (
     <TitleWrapper>
       <TitleBorderInset>
@@ -318,10 +326,27 @@ const DocsLink = ({
 };
 
 const DAOSummary = (): JSX.Element => {
-  const week = 1;
+  const [contracts] = useContracts();
+  const [week, setWeek] = React.useState('');
   const contributorCount = 25;
   const contributorBudget = 400000;
   const token = '$DEF';
+
+  const getEpoch = async () => {
+    console.log('inside GetEpoch');
+    if (!contracts || !contracts.EPC) return;
+    try {
+      const epoch = await contracts.EPC.current();
+      console.log('epoch is ', epoch);
+      setWeek(epoch);
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  React.useEffect(() => {
+    getEpoch();
+  }, [contracts]);
 
   return (
     <DAOSummaryWrapper>
@@ -375,6 +400,82 @@ const Home = (): JSX.Element => {
   const handleCloseGiveRewardsModal = () => {
     setIsGiveRewardsModalOpen(false);
   };
+
+  const [osContractAddress, setOSContractAddress] = React.useState('');
+
+  const web3 = useWeb3();
+  const [contracts, setContracts] = useContracts();
+  console.log(contracts); //TODO remove
+
+  // get address of OS
+  const getOS = async () => {
+    const defaultOSFactoryContractAddress = process.env
+      .NEXT_PUBLIC_CONTRACT_DEFAULT_OS_FACTORY_ADDRESS as string;
+
+    const osFactoryContract = new ethers.Contract(
+      defaultOSFactoryContractAddress,
+      defaultOSFactoryABI,
+      web3,
+    );
+
+    try {
+      const address = await osFactoryContract.osMap(
+        ethers.utils.formatBytes32String(orgName as string),
+      );
+      setOSContractAddress(address);
+    } catch (err) {
+      console.log('ERROR: ', err);
+    }
+  };
+
+  // create contract for each module and set the contracts to state
+  const getModules = async () => {
+    if (!osContractAddress) return;
+
+    const newContracts: any = {};
+    const moduleABIs = [
+      { name: 'EPC', abi: epochABI },
+      { name: 'TKN', abi: tokenABI },
+      { name: 'MBR', abi: membersABI },
+      { name: 'PAY', abi: peerRewardsABI },
+    ];
+
+    const osContract = new ethers.Contract(
+      osContractAddress,
+      defaultOSABI,
+      web3,
+    );
+    newContracts['OS'] = osContract;
+
+    const requests = moduleABIs.map(async (module) => {
+      const moduleAddress = osContract.getModule(
+        ethers.utils.toUtf8Bytes(module.name),
+      );
+      return moduleAddress;
+    });
+
+    try {
+      const addresses = await Promise.all(requests);
+      moduleABIs.map((elem, i) => {
+        const newContract = new ethers.Contract(addresses[i], elem.abi, web3);
+        newContracts[elem.name] = newContract;
+      });
+      // console.log('newContractsAre', newContracts);
+      setContracts((prevState: any) => ({ ...prevState, ...newContracts }));
+    } catch (err) {
+      console.log('ERROR: ', err);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!orgName) return;
+    getOS();
+  }, [orgName]);
+
+  React.useEffect(() => {
+    if (!osContractAddress) return;
+    getModules();
+  }, [osContractAddress]);
 
   return (
     <>

@@ -5,12 +5,16 @@ import React from 'react';
 import { ethers } from 'ethers';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
-import { useInterval } from 'react-use';
+// import { useInterval } from 'react-use';
 
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
-import { accountContext } from '../shared/contexts';
+import {
+  accountContext,
+  contractsContext,
+  web3Context,
+} from '../shared/contexts';
 
 declare const window: any;
 
@@ -24,35 +28,43 @@ type AppPropsWithLayout = AppProps & {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
-  const [ethersProvider, setEthersProvider] = React.useState<any>(undefined);
+  console.log(setAccount); //TODO remove
+  // TODO: Fix types here
+  const [web3, setWeb3] = React.useState<any>(undefined);
+  const [contracts, setContracts] = React.useState<any>(undefined);
 
   const getLayout = Component.getLayout ?? ((page) => page);
 
   React.useEffect(() => {
     if (typeof window.ethereum !== 'undefined') {
       window.ethereum.enable();
-      const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-      setEthersProvider(ethersProvider);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      setWeb3(provider);
     } else {
       console.log('No web3? You should consider trying MetaMask!');
     }
   }, []);
 
-  useInterval(async () => {
-    if (!ethersProvider) return;
-    const selectedAccount = await ethersProvider.getSigner();
-    if (selectedAccount == account) return;
-    setAccount(selectedAccount);
-  }, 500);
+  // useInterval(async () => {
+  //   if (!web3) return;
+  //   const selectedAccount = await web3.getSigner();
+  //   // TODO: this is incorrect
+  //   if (selectedAccount == account) return;
+  //   setAccount(selectedAccount);
+  // }, 500);
 
   return (
     <ApolloProvider client={client}>
-      <accountContext.Provider value={account}>
-        {globalStyles}
-        <ThemeProvider theme={theme}>
-          {getLayout(<Component {...pageProps} />)}
-        </ThemeProvider>
-      </accountContext.Provider>
+      <web3Context.Provider value={web3}>
+        <contractsContext.Provider value={[contracts, setContracts]}>
+          <accountContext.Provider value={account}>
+            {globalStyles}
+            <ThemeProvider theme={theme}>
+              {getLayout(<Component {...pageProps} />)}
+            </ThemeProvider>
+          </accountContext.Provider>
+        </contractsContext.Provider>
+      </web3Context.Provider>
     </ApolloProvider>
   );
 }
