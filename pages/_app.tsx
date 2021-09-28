@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app';
 import type { NextPage } from 'next';
 import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
-import Web3 from 'web3';
+import { ethers } from 'ethers';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
 import { useInterval } from 'react-use';
@@ -10,8 +10,7 @@ import { useInterval } from 'react-use';
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
-import { accountContext, contractContext } from '../shared/contexts';
-import contractJson from '../public/contractABI';
+import { accountContext } from '../shared/contexts';
 
 declare const window: any;
 
@@ -25,48 +24,34 @@ type AppPropsWithLayout = AppProps & {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
-  const [contract, setContract] = React.useState<any>(undefined);
-  const [web3, setWeb3] = React.useState<any>(undefined);
+  const [ethersProvider, setEthersProvider] = React.useState<any>(undefined);
 
   const getLayout = Component.getLayout ?? ((page) => page);
 
   React.useEffect(() => {
-    const contractAddress = process.env.NEXT_PUBLIC_MEM_CONTRACT_ADDRESS;
-
     if (typeof window.ethereum !== 'undefined') {
       window.ethereum.enable();
-      const web3 = new Web3(window.ethereum);
-      const contract = new web3.eth.Contract(
-        // eslint-disable-next-line
-        // @ts-ignore
-        contractJson.abi,
-        contractAddress,
-      );
-      setWeb3(web3);
-      setContract(contract);
+      const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
+      setEthersProvider(ethersProvider);
     } else {
       console.log('No web3? You should consider trying MetaMask!');
     }
   }, []);
 
   useInterval(async () => {
-    if (!web3) return;
-    const accounts = await web3.eth.getAccounts();
-    const selectedAccount = accounts[0];
+    if (!ethersProvider) return;
+    const selectedAccount = await ethersProvider.getSigner();
     if (selectedAccount == account) return;
     setAccount(selectedAccount);
-    // }
   }, 500);
 
   return (
     <ApolloProvider client={client}>
       <accountContext.Provider value={account}>
-        <contractContext.Provider value={contract}>
-          {globalStyles}
-          <ThemeProvider theme={theme}>
-            {getLayout(<Component {...pageProps} />)}
-          </ThemeProvider>
-        </contractContext.Provider>
+        {globalStyles}
+        <ThemeProvider theme={theme}>
+          {getLayout(<Component {...pageProps} />)}
+        </ThemeProvider>
       </accountContext.Provider>
     </ApolloProvider>
   );

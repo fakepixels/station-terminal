@@ -9,8 +9,6 @@ import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
 import Layout from '../components/shared/Layout';
 import TopBar from '../components/shared/TopBar';
 
-import { useAccount, useContract } from '../shared/contexts';
-
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -352,9 +350,6 @@ const DAOSummary = (): JSX.Element => {
 };
 
 const Home = (): JSX.Element => {
-  const contract = useContract();
-  const account = useAccount();
-
   const [isContributionModalOpen, setIsContributionModalOpen] =
     React.useState(false);
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
@@ -370,9 +365,6 @@ const Home = (): JSX.Element => {
   const handleCloseGiveRewardsModal = () => {
     setIsGiveRewardsModalOpen(false);
   };
-
-  console.log('contract is ', contract);
-  console.log('account is ', account);
 
   return (
     <>
