@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+import { useAccount, useWeb3 } from '../../shared/contexts';
 
 const Wrapper = styled.div`
   display: flex;
@@ -89,6 +90,25 @@ const Dropdown = ({
 };
 
 const NavBar = (): JSX.Element => {
+  const account = useAccount();
+  const web3 = useWeb3();
+  const [address, setAddress] = React.useState(account);
+
+  const getAddress = async () => {
+    if (!web3) return;
+    const signer = web3.getSigner();
+    const res = await signer.getAddress();
+    setAddress(res);
+  };
+
+  React.useEffect(() => {
+    getAddress();
+  }, [web3]);
+
+  React.useEffect(() => {
+    setAddress(account);
+  }, [account]);
+
   return (
     <Wrapper>
       <LogoWrapper>
@@ -99,10 +119,7 @@ const NavBar = (): JSX.Element => {
         <StationLogo src="/StationLogo.svg" alt="Station Logo" />
       </LogoWrapper>
       <ControlWrapper>
-        <Dropdown
-          address={'0xfakeaddress'}
-          avatarURL={'./sampleAssets/Hobbes.png'}
-        />
+        <Dropdown address={address} avatarURL={'./sampleAssets/Hobbes.png'} />
       </ControlWrapper>
     </Wrapper>
   );

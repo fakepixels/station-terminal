@@ -28,7 +28,6 @@ type AppPropsWithLayout = AppProps & {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
-  console.log(setAccount); //TODO remove
   // TODO: Fix types here
   const [web3, setWeb3] = React.useState<any>(undefined);
   const [contracts, setContracts] = React.useState<any>(undefined);
@@ -40,18 +39,13 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
       window.ethereum.enable();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       setWeb3(provider);
+      window.ethereum.on('accountsChanged', function (accounts: string[]) {
+        setAccount(accounts[0]);
+      });
     } else {
       console.log('No web3? You should consider trying MetaMask!');
     }
   }, []);
-
-  // useInterval(async () => {
-  //   if (!web3) return;
-  //   const selectedAccount = await web3.getSigner();
-  //   // TODO: this is incorrect
-  //   if (selectedAccount == account) return;
-  //   setAccount(selectedAccount);
-  // }, 500);
 
   return (
     <ApolloProvider client={client}>
