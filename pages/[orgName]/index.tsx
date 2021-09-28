@@ -49,7 +49,75 @@ const Background = () => {
   );
 };
 
-const Footer = styled.div`
+const Footer = () => {
+  const [isContributionModalOpen, setIsContributionModalOpen] =
+    React.useState(false);
+  const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
+    React.useState(false);
+  const [isGiveRewardsModalOpen, setIsGiveRewardsModalOpen] =
+    React.useState(false);
+  const handleCloseContributionModal = () => {
+    setIsContributionModalOpen(false);
+  };
+  const handleCloseClaimRewardsModal = () => {
+    setIsClaimRewardsModalOpen(false);
+  };
+  const handleCloseGiveRewardsModal = () => {
+    setIsGiveRewardsModalOpen(false);
+  };
+  return (
+    <>
+      <ContributionModal
+        isOpen={isContributionModalOpen}
+        onRequestClose={handleCloseContributionModal}
+      />
+      <ClaimRewardsModal
+        isOpen={isClaimRewardsModalOpen}
+        onRequestClose={handleCloseClaimRewardsModal}
+      />
+      <GiveRewardsModal
+        isOpen={isGiveRewardsModalOpen}
+        onRequestClose={handleCloseGiveRewardsModal}
+      />
+      <FooterWrapper>
+        <FooterStats>
+          <FooterStat description={'YOUR TOTAL $DEF'} value={'44,000'} />
+          <FooterStat description={'YOUR OWNERSHIP'} value={'3%'} />
+          <FooterStat
+            description={'TOTAL ENDORSEMENTS RECEIVED'}
+            value={'1,235'}
+          />
+        </FooterStats>
+        <FooterActions>
+          <FooterActionButton
+            onClick={() => {
+              setIsGiveRewardsModalOpen(true);
+            }}
+          >
+            REWARD
+          </FooterActionButton>
+          <FooterActionButton
+            onClick={() => {
+              setIsContributionModalOpen(true);
+            }}
+          >
+            ENDORSE
+          </FooterActionButton>
+          <FooterActionButton
+            onClick={() => {
+              setIsClaimRewardsModalOpen(true);
+            }}
+          >
+            CLAIM REWARDS
+          </FooterActionButton>
+        </FooterActions>
+      </FooterWrapper>
+      ;
+    </>
+  );
+};
+
+const FooterWrapper = styled.div`
   width: 100%;
   height: 160px;
   background-image: url('/StationFloor.png');
@@ -181,22 +249,6 @@ const Home = (): JSX.Element => {
   // TODO: This is to fix a type issue. Clean this up later
   if (Array.isArray(orgName)) orgName = orgName[0];
 
-  const [isContributionModalOpen, setIsContributionModalOpen] =
-    React.useState(false);
-  const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
-    React.useState(false);
-  const [isGiveRewardsModalOpen, setIsGiveRewardsModalOpen] =
-    React.useState(false);
-  const handleCloseContributionModal = () => {
-    setIsContributionModalOpen(false);
-  };
-  const handleCloseClaimRewardsModal = () => {
-    setIsClaimRewardsModalOpen(false);
-  };
-  const handleCloseGiveRewardsModal = () => {
-    setIsGiveRewardsModalOpen(false);
-  };
-
   const [osContractAddress, setOSContractAddress] = React.useState('');
 
   const web3 = useWeb3();
@@ -282,51 +334,7 @@ const Home = (): JSX.Element => {
           <OrgSummary />
         </ContentWrapper>
       </PageWrapper>
-      <Footer>
-        <FooterStats>
-          <FooterStat description={'YOUR TOTAL $DEF'} value={'44,000'} />
-          <FooterStat description={'YOUR OWNERSHIP'} value={'3%'} />
-          <FooterStat
-            description={'TOTAL ENDORSEMENTS RECEIVED'}
-            value={'1,235'}
-          />
-        </FooterStats>
-        <FooterActions>
-          <FooterActionButton
-            onClick={() => {
-              setIsGiveRewardsModalOpen(true);
-            }}
-          >
-            REWARD
-          </FooterActionButton>
-          <FooterActionButton
-            onClick={() => {
-              setIsContributionModalOpen(true);
-            }}
-          >
-            ENDORSE
-          </FooterActionButton>
-          <FooterActionButton
-            onClick={() => {
-              setIsClaimRewardsModalOpen(true);
-            }}
-          >
-            CLAIM REWARDS
-          </FooterActionButton>
-        </FooterActions>
-      </Footer>
-      <ContributionModal
-        isOpen={isContributionModalOpen}
-        onRequestClose={handleCloseContributionModal}
-      />
-      <ClaimRewardsModal
-        isOpen={isClaimRewardsModalOpen}
-        onRequestClose={handleCloseClaimRewardsModal}
-      />
-      <GiveRewardsModal
-        isOpen={isGiveRewardsModalOpen}
-        onRequestClose={handleCloseGiveRewardsModal}
-      />
+      <Footer></Footer>
     </>
   );
 };
