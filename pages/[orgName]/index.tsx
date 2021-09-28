@@ -328,17 +328,35 @@ const DocsLink = ({
 const DAOSummary = (): JSX.Element => {
   const [contracts] = useContracts();
   const [week, setWeek] = React.useState('');
+  const [budget, setBudget] = React.useState('');
+  const [tokenSymbol, setTokenSymbol] = React.useState('');
   const contributorCount = 25;
-  const contributorBudget = 400000;
-  const token = '$DEF';
 
   const getEpoch = async () => {
-    console.log('inside GetEpoch');
     if (!contracts || !contracts.EPC) return;
     try {
       const epoch = await contracts.EPC.current();
-      console.log('epoch is ', epoch);
       setWeek(epoch);
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  const getBudget = async () => {
+    if (!contracts || !contracts.EPC) return;
+    try {
+      const res = await contracts.EPC.TOKEN_BONUS();
+      setBudget(res.toNumber());
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  const getSymbol = async () => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.symbol();
+      setTokenSymbol(res);
     } catch (err) {
       console.log('ERR: ', err);
     }
@@ -346,6 +364,8 @@ const DAOSummary = (): JSX.Element => {
 
   React.useEffect(() => {
     getEpoch();
+    getBudget();
+    getSymbol();
   }, [contracts]);
 
   return (
@@ -358,7 +378,7 @@ const DAOSummary = (): JSX.Element => {
         <DaoSummaryValue>{contributorCount}</DaoSummaryValue>
         <DaoSummaryLabel>Contributor budget</DaoSummaryLabel>
         <DaoSummaryValue>
-          {contributorBudget} <DaoSummaryToken>{token}</DaoSummaryToken>
+          {budget} <DaoSummaryToken>{'$' + tokenSymbol}</DaoSummaryToken>
         </DaoSummaryValue>
       </DaoSummaryContibutionsGrid>
       <DaoSummaryDivider />
@@ -404,8 +424,7 @@ const Home = (): JSX.Element => {
   const [osContractAddress, setOSContractAddress] = React.useState('');
 
   const web3 = useWeb3();
-  const [contracts, setContracts] = useContracts();
-  console.log(contracts); //TODO remove
+  const [, setContracts] = useContracts();
 
   // get address of OS
   const getOS = async () => {
@@ -460,7 +479,7 @@ const Home = (): JSX.Element => {
         const newContract = new ethers.Contract(addresses[i], elem.abi, web3);
         newContracts[elem.name] = newContract;
       });
-      // console.log('newContractsAre', newContracts);
+      console.log('newContractsAre', newContracts);
       setContracts((prevState: any) => ({ ...prevState, ...newContracts }));
     } catch (err) {
       console.log('ERROR: ', err);
