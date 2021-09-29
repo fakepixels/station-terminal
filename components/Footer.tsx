@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+import { useContracts, useAccount } from '../shared/contexts';
 
 import Button from '../components/shared/Button';
 import ContributionModal from '../components/Contributions/ContributionsModal';
@@ -76,7 +77,15 @@ const FooterActions = styled.div`
 
 const FooterActionButton = styled(Button)``;
 
-const Footer = () => {
+const Footer = (): JSX.Element => {
+  const [contracts] = useContracts();
+  const account = useAccount();
+  const [tokenSymbol, setTokenSymbol] = React.useState('');
+  const [totalTokenSupply, setTokenSupply] = React.useState(0);
+  const [totalTokensOwned, setTokensOwned] = React.useState(0);
+  // TODO: count staked tokens
+  const [totalTokensStaked] = React.useState(0);
+
   const [isContributionModalOpen, setIsContributionModalOpen] =
     React.useState(false);
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
@@ -92,6 +101,52 @@ const Footer = () => {
   const handleCloseGiveRewardsModal = () => {
     setIsGiveRewardsModalOpen(false);
   };
+
+  const getSymbol = async () => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.symbol();
+      setTokenSymbol(res);
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  const getTokenSupply = async () => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.totalSupply();
+      setTokenSupply(res.toNumber());
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  const getTokenBalance = async (account: string) => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.balanceOf(account);
+      setTokensOwned(res);
+    } catch (err) {
+      console.log('ERR: ', err);
+    }
+  };
+
+  React.useEffect(() => {
+    getSymbol();
+    getTokenSupply();
+  }, [contracts]);
+
+  React.useEffect(() => {
+    if (!account || !contracts) return;
+    getTokenBalance(account);
+  }, [account, contracts]);
+
+  const calculatePctOwnership = () => {
+    if (!totalTokenSupply) return 0;
+    return (totalTokensOwned + totalTokensStaked) / totalTokenSupply;
+  };
+
   return (
     <>
       <ContributionModal
@@ -108,8 +163,14 @@ const Footer = () => {
       />
       <FooterWrapper>
         <FooterStats>
-          <FooterStat description={'YOUR TOTAL $DEF'} value={'44,000'} />
-          <FooterStat description={'YOUR OWNERSHIP'} value={'3%'} />
+          <FooterStat
+            description={'YOUR TOTAL $' + tokenSymbol}
+            value={(totalTokensOwned + totalTokensStaked).toString()}
+          />
+          <FooterStat
+            description={'YOUR OWNERSHIP'}
+            value={calculatePctOwnership().toFixed(2) + '%'}
+          />
           <FooterStat
             description={'TOTAL ENDORSEMENTS RECEIVED'}
             value={'1,235'}
