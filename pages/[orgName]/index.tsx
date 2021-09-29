@@ -23,29 +23,6 @@ const PageWrapper = styled.div`
   align-items: center;
 `;
 
-const BackgroundWrapper = styled.div`
-  position: absolute;
-  top: 0px;
-  z-index: -1;
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(#ffffff, #ff816e);
-`;
-
-const BackgroundGrid = styled.div`
-  height: 100%;
-  width: 100%;
-  background-image: url('/Grid.svg');
-`;
-
-const Background = () => {
-  return (
-    <BackgroundWrapper>
-      <BackgroundGrid></BackgroundGrid>
-    </BackgroundWrapper>
-  );
-};
-
 const TitleWrapper = styled.div`
   margin: 50px 0px;
   min-width: 401px;
@@ -189,7 +166,6 @@ const Home = (): JSX.Element => {
 
   return (
     <>
-      <Background />
       <PageWrapper>
         <Title daoName={orgName ? orgName : ''} />
         <ContentWrapper>
