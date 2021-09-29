@@ -80,10 +80,10 @@ const FooterActionButton = styled(Button)``;
 const Footer = (): JSX.Element => {
   const [contracts] = useContracts();
   const account = useAccount();
+
   const [tokenSymbol, setTokenSymbol] = React.useState('');
   const [totalTokenSupply, setTokenSupply] = React.useState(0);
   const [totalTokensOwned, setTokensOwned] = React.useState(0);
-  // TODO: count staked tokens
   const [totalTokensStaked] = React.useState(0);
 
   const [isContributionModalOpen, setIsContributionModalOpen] =
@@ -123,10 +123,10 @@ const Footer = (): JSX.Element => {
   };
 
   const getTokenBalance = async (account: string) => {
-    if (!contracts || !contracts.TKN) return;
+    if (!contracts || !contracts.TKN || !account) return;
     try {
       const res = await contracts.TKN.balanceOf(account);
-      setTokensOwned(res);
+      setTokensOwned(res.toNumber());
     } catch (err) {
       console.log('ERR: ', err);
     }
@@ -135,6 +135,7 @@ const Footer = (): JSX.Element => {
   React.useEffect(() => {
     getSymbol();
     getTokenSupply();
+    getTokenBalance(account);
   }, [contracts]);
 
   React.useEffect(() => {
