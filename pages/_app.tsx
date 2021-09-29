@@ -34,6 +34,16 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
 
   const getLayout = Component.getLayout ?? ((page) => page);
 
+  const getAccount = async () => {
+    try {
+      const signer = web3.getSigner();
+      const res = await signer.getAddress();
+      setAccount(res);
+    } catch (err) {
+      console.log('ERR:', err);
+    }
+  };
+
   React.useEffect(() => {
     if (typeof window.ethereum !== 'undefined') {
       window.ethereum.enable();
@@ -46,6 +56,11 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
       console.log('No web3? You should consider trying MetaMask!');
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!web3) return;
+    getAccount();
+  }, [web3]);
 
   return (
     <ApolloProvider client={client}>
