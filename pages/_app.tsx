@@ -5,12 +5,12 @@ import React from 'react';
 import { ethers } from 'ethers';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
-// import { useInterval } from 'react-use';
 
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
 import {
+  Contracts,
   accountContext,
   contractsContext,
   web3Context,
@@ -30,8 +30,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
   // TODO: Fix types here
   const [web3, setWeb3] = React.useState<any>(undefined);
-  const [contracts, setContracts] = React.useState<any>(undefined);
+  const [contracts, setContracts] = React.useState<Contracts>({});
 
+  // getLayout allows us to share Navbar state between pages
   const getLayout = Component.getLayout ?? ((page) => page);
 
   const getAccount = async () => {
@@ -44,6 +45,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
     }
   };
 
+  // Connect to blockchain via the provider
   React.useEffect(() => {
     if (typeof window.ethereum !== 'undefined') {
       window.ethereum.enable();
@@ -65,7 +67,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   return (
     <ApolloProvider client={client}>
       <web3Context.Provider value={web3}>
-        <contractsContext.Provider value={[contracts, setContracts]}>
+        <contractsContext.Provider value={{ contracts, setContracts }}>
           <accountContext.Provider value={account}>
             {globalStyles}
             <ThemeProvider theme={theme}>

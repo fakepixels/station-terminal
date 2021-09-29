@@ -1,9 +1,25 @@
-import * as React from 'react';
+import { Dispatch, createContext, useContext } from 'react';
+import { providers } from 'ethers';
 
-export const accountContext = React.createContext<string>('');
-// TODO: Fix types
-export const contractsContext = React.createContext<any>(undefined);
-export const web3Context = React.createContext<any>(undefined);
-export const useAccount = () => React.useContext(accountContext);
-export const useContracts = () => React.useContext(contractsContext);
-export const useWeb3 = () => React.useContext(web3Context);
+export interface Contracts {
+  [key: string]: any;
+}
+
+interface ContractsContext {
+  setContracts: Dispatch<Contracts>;
+  contracts: Contracts | Record<string, never>; // value is either object of contracts or an empty object
+}
+
+export const accountContext = createContext<string>('');
+export const contractsContext = createContext<ContractsContext>({
+  setContracts: () => null,
+  contracts: {},
+});
+export const web3Context = createContext<providers.Provider | undefined>(
+  undefined,
+);
+export const useAccount = (): string => useContext(accountContext);
+export const useContracts = (): ContractsContext =>
+  useContext(contractsContext);
+export const useWeb3 = (): providers.Provider | undefined =>
+  useContext(web3Context);

@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { ReactElement } from 'react';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
-import { useWeb3, useContracts } from '../../shared/contexts';
+import { useWeb3, useContracts, Contracts } from '../../shared/contexts';
 
 import ContributorsList from '../../components/ContributorsList';
 import OrgSummary from '../../components/OrgSummary';
@@ -111,10 +111,11 @@ const Home = (): JSX.Element => {
   const [osContractAddress, setOSContractAddress] = React.useState('');
 
   const web3 = useWeb3();
-  const [, setContracts] = useContracts();
+  const { setContracts } = useContracts();
 
   // get address of OS
   const getOS = async () => {
+    if (!orgName || !web3) return;
     const defaultOSFactoryContractAddress = process.env
       .NEXT_PUBLIC_CONTRACT_DEFAULT_OS_FACTORY_ADDRESS as string;
 
@@ -167,19 +168,22 @@ const Home = (): JSX.Element => {
         newContracts[elem.name] = newContract;
       });
       console.log('newContractsAre', newContracts);
-      setContracts((prevState: any) => ({ ...prevState, ...newContracts }));
+      setContracts(
+        (prevState: Contracts): Contracts => ({
+          ...prevState,
+          ...newContracts,
+        }),
+      );
     } catch (err) {
       console.log('ERROR: ', err);
     }
   };
 
   React.useEffect(() => {
-    if (!orgName) return;
     getOS();
-  }, [orgName]);
+  }, [orgName, web3]);
 
   React.useEffect(() => {
-    if (!osContractAddress) return;
     getModules();
   }, [osContractAddress]);
 

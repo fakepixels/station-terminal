@@ -78,12 +78,13 @@ const FooterActions = styled.div`
 const FooterActionButton = styled(Button)``;
 
 const Footer = (): JSX.Element => {
-  const [contracts] = useContracts();
+  const { contracts } = useContracts();
   const account = useAccount();
 
   const [tokenSymbol, setTokenSymbol] = React.useState('');
   const [totalTokenSupply, setTokenSupply] = React.useState(0);
   const [totalTokensOwned, setTokensOwned] = React.useState(0);
+  // TODO: count staked tokens
   const [totalTokensStaked] = React.useState(0);
 
   const [isContributionModalOpen, setIsContributionModalOpen] =

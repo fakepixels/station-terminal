@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 
 import Layout from '../components/shared/Layout';
 
+//
 const Home = (): JSX.Element => {
   return <div>TODO: Redirect to sign-in</div>;
 };

@@ -91,7 +91,7 @@ const DocsLink = ({
 };
 
 const OrgSummary = (): JSX.Element => {
-  const [contracts] = useContracts();
+  const { contracts } = useContracts();
   const [week, setWeek] = React.useState('');
   const [budget, setBudget] = React.useState('');
   const [tokenSymbol, setTokenSymbol] = React.useState('');
