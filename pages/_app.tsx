@@ -1,23 +1,34 @@
-// import App from "next/app";
+import type { AppProps } from 'next/app';
+import type { NextPage } from 'next';
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import Web3 from 'web3';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
 import { useInterval } from 'react-use';
+
 import client from '../shared/apollo-client';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
 import { accountContext, contractContext } from '../shared/contexts';
 import contractJson from '../public/contractABI';
 
-import type { AppProps /*, AppContext */ } from 'next/app';
-
 declare const window: any;
 
-function MyApp({ Component, pageProps }: AppProps): JSX.Element {
+type NextPageWithLayout = NextPage & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
   const [account, setAccount] = React.useState<string>('');
   const [contract, setContract] = React.useState<any>(undefined);
   const [web3, setWeb3] = React.useState<any>(undefined);
+
+  const getLayout = Component.getLayout ?? ((page) => page);
 
   React.useEffect(() => {
     const contractAddress = process.env.NEXT_PUBLIC_MEM_CONTRACT_ADDRESS;
@@ -35,7 +46,6 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
       setContract(contract);
     } else {
       console.log('No web3? You should consider trying MetaMask!');
-      // TODO pop up a modal if no metamask
     }
   }, []);
 
@@ -54,7 +64,7 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
         <contractContext.Provider value={contract}>
           {globalStyles}
           <ThemeProvider theme={theme}>
-            <Component {...pageProps} />
+            {getLayout(<Component {...pageProps} />)}
           </ThemeProvider>
         </contractContext.Provider>
       </accountContext.Provider>

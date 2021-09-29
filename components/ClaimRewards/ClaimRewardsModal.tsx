@@ -2,7 +2,7 @@ import * as React from 'react';
 import Modal from '../shared/Modal';
 import styled from '@emotion/styled';
 
-const ContributionModalWrapper = styled(Modal)`
+const ClaimRewardsModalWrapper = styled(Modal)`
   position: absolute;
   top: 10vh;
   left: 0px;
@@ -31,13 +31,13 @@ interface Props {
   onRequestClose?: () => void;
 }
 
-const ContributionModal = ({
+const ClaimRewards = ({
   isOpen = false,
   onRequestClose = () => null,
 }: Props): JSX.Element => (
-  <ContributionModalWrapper onRequestClose={onRequestClose} isOpen={isOpen}>
-    This is the contribution modal
-  </ContributionModalWrapper>
+  <ClaimRewardsModalWrapper onRequestClose={onRequestClose} isOpen={isOpen}>
+    This is the claim rewards modal
+  </ClaimRewardsModalWrapper>
 );
 
-export default ContributionModal;
+export default ClaimRewards;

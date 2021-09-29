@@ -2,8 +2,10 @@ import '@emotion/react';
 import styled from '@emotion/styled';
 
 // primary swatch
-const GREEN = '#1dbf53';
+const GREEN = '#85D59A';
 const PURPLE = '#6A6DCD';
+const BLACK = '#090909';
+const WHITE = '#F2EFEF';
 
 // secondary swatch
 const PINK = '#F38EEF';
@@ -37,8 +39,8 @@ declare module '@emotion/react' {
 export const theme = {
   defaultBorderRadius: '4px',
   colors: {
-    white: 'white',
-    black: 'black',
+    white: WHITE,
+    black: BLACK,
 
     primary: GREEN,
     secondary: PURPLE,
