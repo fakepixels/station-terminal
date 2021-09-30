@@ -3,7 +3,28 @@ import React from 'react';
 
 import Navbar from './NavBar';
 
-const Main = styled.main``;
+const BackgroundWrapper = styled.div`
+  position: absolute;
+  top: 0px;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(#ffffff, #ff816e);
+`;
+
+const BackgroundGrid = styled.div`
+  height: 100%;
+  width: 100%;
+  background-image: url('/Grid.svg');
+`;
+
+const Background = () => {
+  return (
+    <BackgroundWrapper>
+      <BackgroundGrid></BackgroundGrid>
+    </BackgroundWrapper>
+  );
+};
 
 export default function Layout({
   children,
@@ -13,7 +34,8 @@ export default function Layout({
   return (
     <>
       <Navbar />
-      <Main>{children}</Main>
+      <Background />
+      <main>{children}</main>
     </>
   );
 }

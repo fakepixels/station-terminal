@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+import { useAccount } from '../../shared/contexts';
 
 const Wrapper = styled.div`
   display: flex;
@@ -89,6 +90,8 @@ const Dropdown = ({
 };
 
 const NavBar = (): JSX.Element => {
+  const account = useAccount();
+
   return (
     <Wrapper>
       <LogoWrapper>
@@ -99,10 +102,7 @@ const NavBar = (): JSX.Element => {
         <StationLogo src="/StationLogo.svg" alt="Station Logo" />
       </LogoWrapper>
       <ControlWrapper>
-        <Dropdown
-          address={'0xfakeaddress'}
-          avatarURL={'./sampleAssets/Hobbes.png'}
-        />
+        <Dropdown address={account} avatarURL={'./sampleAssets/Hobbes.png'} />
       </ControlWrapper>
     </Wrapper>
   );
