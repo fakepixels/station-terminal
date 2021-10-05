@@ -2,8 +2,7 @@ import { css } from '@emotion/react';
 import * as React from 'react';
 import { default as ReactModal } from 'react-modal';
 import styled from '@emotion/styled';
-
-import TopBar from './TopBar';
+import TopBar from '../Topbar';
 
 const modalStyles = css``;
 
@@ -19,6 +18,7 @@ const Modal = ({
   className,
   contentWrapperOverride,
   mandatory = false,
+  onBack,
 }: {
   children: React.ReactNode;
   isOpen: boolean;
@@ -27,9 +27,8 @@ const Modal = ({
   className?: string;
   contentWrapperOverride?: string;
   mandatory?: boolean;
+  onBack?: () => void;
 }): JSX.Element => {
-  const contents = children;
-
   return (
     <ReactModal
       isOpen={isOpen}
@@ -39,9 +38,13 @@ const Modal = ({
       closeTimeoutMS={200}
       shouldCloseOnOverlayClick={mandatory ? false : true}
     >
-      <TopBar mandatory={mandatory} onRequestClose={onRequestClose} />
+      <TopBar
+        mandatory={mandatory}
+        onRequestClose={onRequestClose}
+        onBack={onBack}
+      />
       <ModalContentWrapper className={`${contentWrapperOverride}`}>
-        {contents}
+        {children}
       </ModalContentWrapper>
     </ReactModal>
   );

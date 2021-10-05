@@ -1,7 +1,8 @@
+import React from 'react';
 import type { AppProps } from 'next/app';
+import { ToastContainer } from 'react-toastify';
 import type { NextPage } from 'next';
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
 import { ethers } from 'ethers';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
@@ -15,6 +16,7 @@ import {
   contractsContext,
   web3Context,
 } from '../shared/contexts';
+import 'react-toastify/dist/ReactToastify.css';
 
 declare const window: any;
 
@@ -76,6 +78,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout): JSX.Element {
           </accountContext.Provider>
         </contractsContext.Provider>
       </web3Context.Provider>
+      <ToastContainer autoClose={4000} />
     </ApolloProvider>
   );
 }

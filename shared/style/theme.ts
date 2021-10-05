@@ -14,6 +14,7 @@ const ORANGE = '#EE8336';
 const PLUM = '#382437';
 const DARKGREEN = '#263332';
 const BROWN = '#372112';
+const SPACEGRAY = '#6D6D6D';
 
 declare module '@emotion/react' {
   export interface Theme {
@@ -32,6 +33,7 @@ declare module '@emotion/react' {
       plum: string;
       darkgreen: string;
       brown: string;
+      gray: string;
     };
   }
 }
@@ -53,41 +55,62 @@ export const theme = {
     plum: PLUM,
     darkgreen: DARKGREEN,
     brown: BROWN,
+    gray: SPACEGRAY,
   },
 };
 
 // typography
-export const Header1 = styled.div`
+export const Heading0 = styled.div`
+  font-size: 48px;
+  font-family: Resistance;
+`;
+
+export const Body0 = styled.div`
+  font-size: 20px;
+  font-family: Resistance;
+`;
+
+export const Heading1 = styled.div`
   font-size: 30px;
-  font-weight: 700;
-`;
-
-export const Header2 = styled.div`
-  font-size: 30px;
-  font-weight: 700;
-`;
-
-export const Header3 = styled.div`
-  font-size: 18px;
-  font-weight: 700;
-`;
-
-export const Header4 = styled.div`
-  font-size: 16px;
-  font-weight: 700;
+  font-family: Terminal;
 `;
 
 export const Body1 = styled.div`
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 14px;
+  font-family: Favorit Pro;
 `;
 
-export const Body2 = styled.div`
-  font-size: 12px;
-  line-height: 16px;
-`;
-
-export const Body3 = styled.div`
+export const Heading4 = styled.div`
   font-size: 10px;
-  line-height: 14px;
+  font-family: Favorit Pro;
+  font-weight: bold;
+`;
+
+export const GlobalNavigation = styled.div`
+  font-size: 30px;
+  line-height: 32px;
+  font-family: 'VT323';
+`;
+
+export const Metadata = styled.div`
+  font-size: 8px;
+  font-family: Favorit Pro;
+`;
+
+export const CTA0 = styled.div`
+  font-size: 20px;
+  font-family: Favorit Pro;
+  font-weight: bold;
+`;
+
+export const CTA1 = styled.div`
+  font-size: 14px;
+  font-family: Favorit Pro;
+  font-weight: bold;
+`;
+
+export const CTA2 = styled.div`
+  font-size: 10px;
+  font-family: Favorit Pro;
+  font-weight: bold;
 `;

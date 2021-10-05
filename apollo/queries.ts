@@ -15,6 +15,7 @@ export const MEMBERS = gql`
 export const ENDORSEMENTS = gql`
   query endorsements($os: String) {
     members(where: { os: $os }) {
+      address
       id
       alias
       endorsementsReceived

@@ -1,62 +1,58 @@
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import * as React from 'react';
-
 import { useContracts } from '../shared/contexts';
+import { Body1, Heading1 } from '../shared/style/theme';
+import { handleError } from '../utils/contract/endorsement';
+import { Divider } from './shared/Divider';
 
 const DAOSummaryWrapper = styled.div`
   background-color: #090909;
   margin: 50px 10px 0px 0px;
-  height: 347px;
   width: 355px;
 `;
 
-const DaoSummaryContibutionsWrapper = styled.div``;
+const DaoSummaryContributionsWrapper = styled.div``;
 
-const DaoSummaryContibutionsTitle = styled.div`
-  font-family: Terminal;
-  font-size: 30px;
+const DaoSummaryContributionsTitle = styled(Heading1)`
   color: ${(props) => props.theme.colors.white};
-  margin: 20px 16px 0px;
+  margin-bottom: 16px;
 `;
 
-const DaoSummaryContibutionsGrid = styled.div`
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-template-rows: 20px 20px;
-  color: ${(props) => props.theme.colors.white};
-  margin: 12px 16px 20px;
+const DaoSummaryHeaderContainer = styled.div`
+  padding: 20px;
 `;
 
-const DaoSummaryLabel = styled.p`
-  color: ${(props) => props.theme.colors.white};
-  font-size: 14px;
-  font-family: Favorit Pro;
+const DaoSummaryToken = styled(Body1)`
+  margin-left: 4px;
+  color: ${(props) => props.theme.colors.gray};
 `;
 
-const DaoSummaryValue = styled.p`
-  text-align: right;
-  color: ${(props) => props.theme.colors.white};
-  font-size: 14px;
-  font-family: Favorit Pro;
-`;
-
-const DaoSummaryToken = styled.span`
-  color: #626262;
-`;
-
-const DaoSummaryDivider = styled.div`
-  border-bottom: 1px solid #626262;
+const DaoSummaryStatRow = styled.div`
   width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const DaoSummaryLabel = styled(Body1)`
+  color: ${(props) => props.theme.colors.white};
+`;
+
+const DaoSummaryValue = styled(Body1)`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: ${(props) => props.theme.colors.white};
 `;
 
 const DaoSummaryTextWrapper = styled.div`
   margin: 20px 20px 16px 16px;
 `;
 
-const DAOSummaryText = styled.p`
+const DAOSummaryText = styled(Body1)`
   color: ${(props) => props.theme.colors.white};
-  font-size: 14px;
-  font-family: Favorit Pro;
+  margin-bottom: 16px;
 `;
 
 const DocsLinkWrapper = styled.a`
@@ -68,20 +64,19 @@ const DocsLinkArrowIcon = styled.img`
   margin-right: 10px;
 `;
 
-const DocsLinkText = styled.p`
+const DocsLinkText = styled(Body1)`
   color: ${(props) => props.theme.colors.green};
-  font-size: 14px;
-  font-family: Favorit Pro;
-  margin: 0px;
+  text-decoration: none;
 `;
 
-const DocsLink = ({
-  linkTitle,
-  url,
-}: {
+interface docLinkProps {
   linkTitle: string;
   url: string;
-}): JSX.Element => {
+}
+
+const DocsLink = (props: docLinkProps): JSX.Element => {
+  const { linkTitle, url } = props;
+
   return (
     <DocsLinkWrapper href={url} target="_blank">
       <DocsLinkArrowIcon src={'/Arrow.svg'} alt={'arrow icon'} />
@@ -92,9 +87,9 @@ const DocsLink = ({
 
 const OrgSummary = (): JSX.Element => {
   const { contracts } = useContracts();
-  const [week, setWeek] = React.useState('');
-  const [budget, setBudget] = React.useState('');
-  const [tokenSymbol, setTokenSymbol] = React.useState('');
+  const [week, setWeek] = useState('');
+  const [budget, setBudget] = useState('');
+  const [tokenSymbol, setTokenSymbol] = useState('');
   const contributorCount = 25;
 
   const getEpoch = async () => {
@@ -103,7 +98,7 @@ const OrgSummary = (): JSX.Element => {
       const epoch = await contracts.EPC.current();
       setWeek(epoch);
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
@@ -113,7 +108,7 @@ const OrgSummary = (): JSX.Element => {
       const res = await contracts.EPC.TOKEN_BONUS();
       setBudget(res.toNumber());
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
@@ -123,11 +118,11 @@ const OrgSummary = (): JSX.Element => {
       const res = await contracts.TKN.symbol();
       setTokenSymbol(res);
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     getEpoch();
     getBudget();
     getSymbol();
@@ -135,18 +130,28 @@ const OrgSummary = (): JSX.Element => {
 
   return (
     <DAOSummaryWrapper>
-      <DaoSummaryContibutionsWrapper>
-        <DaoSummaryContibutionsTitle>WEEK {week}</DaoSummaryContibutionsTitle>
-      </DaoSummaryContibutionsWrapper>
-      <DaoSummaryContibutionsGrid>
-        <DaoSummaryLabel>Contributors</DaoSummaryLabel>
-        <DaoSummaryValue>{contributorCount}</DaoSummaryValue>
-        <DaoSummaryLabel>Contributor budget</DaoSummaryLabel>
-        <DaoSummaryValue>
-          {budget} <DaoSummaryToken>{'$' + tokenSymbol}</DaoSummaryToken>
-        </DaoSummaryValue>
-      </DaoSummaryContibutionsGrid>
-      <DaoSummaryDivider />
+      <DaoSummaryHeaderContainer>
+        <DaoSummaryContributionsWrapper>
+          <DaoSummaryContributionsTitle>
+            WEEK {week}
+          </DaoSummaryContributionsTitle>
+        </DaoSummaryContributionsWrapper>
+        <DaoSummaryStatRow>
+          <DaoSummaryLabel>Contributors</DaoSummaryLabel>
+          <DaoSummaryValue>{contributorCount}</DaoSummaryValue>
+        </DaoSummaryStatRow>
+
+        <DaoSummaryStatRow>
+          <DaoSummaryLabel>Contributor Budget</DaoSummaryLabel>
+          <DaoSummaryValue>
+            {budget}
+            <DaoSummaryToken>{'$' + tokenSymbol}</DaoSummaryToken>
+          </DaoSummaryValue>
+        </DaoSummaryStatRow>
+      </DaoSummaryHeaderContainer>
+
+      <Divider />
+
       <DaoSummaryTextWrapper>
         <DAOSummaryText>
           Default creates building blocks for governance, payments, and

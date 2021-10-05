@@ -23,3 +23,6 @@ export const useContracts = (): ContractsContext =>
   useContext(contractsContext);
 export const useWeb3 = (): providers.Provider | undefined =>
   useContext(web3Context);
+
+export const endorsementContext = createContext<any>(undefined);
+export const useEndorsement = () => useContext(endorsementContext);

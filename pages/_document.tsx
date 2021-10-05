@@ -12,12 +12,16 @@ class MyDocument extends Document {
     return { ...initialProps };
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <Html>
         <Head>
           <link
             href="https://fonts.googleapis.com/css2?family=Public+Sans&display=optional"
+            rel="stylesheet"
+          />
+          <link
+            href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
             rel="stylesheet"
           />
         </Head>

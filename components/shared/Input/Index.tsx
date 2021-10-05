@@ -4,7 +4,7 @@ import { isNil } from 'lodash';
 
 interface inputOwnProps {
   caption?: string;
-  value: string;
+  value: string | number;
   onChange: any;
   placeholder?: string;
   maxLength?: number;
@@ -13,6 +13,8 @@ interface inputOwnProps {
   rows?: number;
   disableResize?: boolean;
   width?: string;
+  type?: string;
+  rightFlatBorder?: boolean;
 }
 
 const InputCaptionContainer = styled.div`
@@ -22,21 +24,33 @@ const InputCaptionContainer = styled.div`
   width: 100%;
   justify-content: space-between;
   margin-bottom: 8px;
+  -webkit-appearance: none;
+  margin: 0;
 `;
 
-const InputMain = styled.input`
-  padding: 10px 12px;
+interface inputProps {
+  rightFlatBorder?: boolean;
+}
+
+const InputMain = styled.input<inputProps>`
+  padding: 6px 12px;
   border: none;
   font-size: 16px;
   transition: 0.05s;
   width: 100%;
 
+  color: ${(props) => props.theme.colors.white};
   box-sizing: border-box;
-  border: 2px solid #d1d1d1;
-  color: ${(props) => props.theme.colors.black};
-  border-radius: 100px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: ${(props) => props.theme.colors.gray};
+  border-right: ${(props) => props.rightFlatBorder && 'none'};
 
-  width: ${(props) => (props.width ? props.width : '200px')};
+  background-color: black;
+
+  width: ${(props) => (props.width ? props.width : '90px')};
+  border-radius: 100px ${(props) => (props.rightFlatBorder ? '0px' : '100px')}
+    ${(props) => (props.rightFlatBorder ? '0px' : '100px')} 100px;
 
   &:focus {
     outline: none;
@@ -49,17 +63,18 @@ const Input = (props: inputOwnProps): JSX.Element => {
     value,
     onChange,
     placeholder,
-
     maxLength,
     disabled,
     width,
+    type,
+    rightFlatBorder,
   } = props;
 
   return (
     <React.Fragment>
-      <InputCaptionContainer>
-        {!isNil(caption) && <div>{caption}</div>}
-      </InputCaptionContainer>
+      {!isNil(caption) && (
+        <InputCaptionContainer>{caption}</InputCaptionContainer>
+      )}
 
       <InputMain
         value={value}
@@ -68,6 +83,8 @@ const Input = (props: inputOwnProps): JSX.Element => {
         maxLength={maxLength || 1000000}
         disabled={disabled}
         width={width}
+        type={type}
+        rightFlatBorder={rightFlatBorder || false}
       />
     </React.Fragment>
   );

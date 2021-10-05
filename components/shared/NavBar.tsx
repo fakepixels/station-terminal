@@ -1,5 +1,6 @@
-import styled from '@emotion/styled';
 import * as React from 'react';
+import styled from '@emotion/styled';
+import { GlobalNavigation } from '../../shared/style/theme';
 import { useAccount } from '../../shared/contexts';
 
 const Wrapper = styled.div`
@@ -8,8 +9,8 @@ const Wrapper = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  background-color: #f2efef;
-  border-bottom: 1px solid #090909;
+  background-color: ${(props) => props.theme.colors.white};
+  border-bottom: 1px solid ${(props) => props.theme.colors.black};
   height: 57px;
 `;
 
@@ -19,10 +20,6 @@ const LogoWrapper = styled.div`
   align-items: center;
   margin-left: 24px;
   gap: 24px;
-`;
-
-const StationLogo = styled.img`
-  height: 24px;
 `;
 
 const FiveCircles = styled.img`
@@ -37,56 +34,39 @@ const ControlWrapper = styled.div`
 `;
 
 const DropdownWrapper = styled.div`
+  border-left: 1px solid ${(props) => props.theme.colors.black};
+  color: ${(props) => props.theme.colors.black};
   height: 100%;
+  width: 259px;
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
-  background-color: #f2efef;
-  font-family: Resistance;
+  font-family: 'VT323';
+`;
+
+const StationLogoText = styled.div`
   font-size: 30px;
-  border-left: 1px solid #090909;
-  padding: 0px 24px;
+  font-family: 'VT323';
 `;
 
-const DropdownImage = styled.img`
-  border-radius: 50%;
-  border: 1px solid #090909;
-  height: 36px;
-  width: 36px;
-  margin-right: 10px;
-`;
-
-const DropownAddress = styled.div`
-  @media (max-width: 480px) {
-    display: none;
-  }
-`;
-
-const Dropdown = ({
-  address,
-  avatarURL,
-}: {
+interface DropdownProps {
   address: string;
-  avatarURL: string;
-}) => {
-  const truncateAddress = (address: string): string => {
-    if (!address) return '';
+}
 
-    const length = address.length;
-    return (
-      address.substring(0, 4) + '...' + address.substring(length - 4, length)
-    );
-  };
-
-  const truncatedAddress = truncateAddress(address);
-
+const Dropdown = (props: DropdownProps): JSX.Element => {
+  const { address } = props;
   return (
     <DropdownWrapper>
-      <DropdownImage src={avatarURL} />
-      <DropownAddress>{truncatedAddress}</DropownAddress>
+      <GlobalNavigation>{address}</GlobalNavigation>
     </DropdownWrapper>
   );
+};
+
+const trimmedAddress = (address: string): string => {
+  return `${address.slice(0, 6)}...${address.slice(
+    address.length - 5,
+    address.length,
+  )}`;
 };
 
 const NavBar = (): JSX.Element => {
@@ -99,10 +79,10 @@ const NavBar = (): JSX.Element => {
           src="/FiveCircles.svg"
           alt="Design of 5 subway stop circles"
         />
-        <StationLogo src="/StationLogo.svg" alt="Station Logo" />
+        <StationLogoText>STATION</StationLogoText>
       </LogoWrapper>
       <ControlWrapper>
-        <Dropdown address={account} avatarURL={'./sampleAssets/Hobbes.png'} />
+        <Dropdown address={trimmedAddress(account)} />
       </ControlWrapper>
     </Wrapper>
   );

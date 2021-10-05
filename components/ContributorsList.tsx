@@ -1,71 +1,76 @@
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import * as React from 'react';
 import { client } from '../apollo/client';
 import { MEMBERS } from '../apollo/queries';
+import { useContracts } from '../shared/contexts';
+import { handleError } from '../utils/contract/endorsement';
 
-import TopBar from './shared/TopBar';
+import TopBar from './shared/Topbar';
+import { Body1, Heading1 } from '../shared/style/theme';
 
 const ContributorsListWrapper = styled.div`
   background-color: #feecde;
-  height: 461px;
+  max-height: 350px;
   max-width: 408px;
   overflow: scroll;
 `;
 
-const ContributorsListTitle = styled.h2`
-  margin: 20px;
-  font-family: Terminal;
-  font-size: 30px;
+const ContributorListBodyWrapper = styled.div`
+  padding: 20px;
 `;
 
 const AliasesWrapper = styled.div`
   column-count: 2;
-  margin: 0px 20px;
 `;
 
-const Alias = styled.div`
+const Title = styled(Heading1)`
+  margin-bottom: 20px;
+  text-transform: uppercase;
+`;
+
+const Alias = styled(Body1)`
   margin-bottom: 10px;
-  font-size: 14px;
-  font-family: Favorit Pro;
 `;
 
-type Member = {
+interface Member {
   alias: string;
   id: string;
-};
+}
 
 const ContributorsList = (): JSX.Element => {
-  const [members, setMembers] = React.useState<Array<Member>>([]);
+  const { contracts } = useContracts();
 
-  React.useEffect(() => {
-    const fetch = () => {
-      //testOS os address to use as an example. Remove later
-      const testOS = '0xb7a5bd0345ef1cc5e66bf61bdec17d2461fbd968';
-      client
-        .query({
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      if (!contracts || !contracts.OS) return;
+      try {
+        const res = await client.query({
           query: MEMBERS,
           variables: {
-            os: testOS,
+            os: contracts.OS.address.toLowerCase(),
           },
-        })
-        .then((res) => {
-          setMembers(res.data.members);
-        })
-        .catch((e) => {
-          console.log(e);
         });
+        setMembers(res.data.members);
+      } catch (err: any) {
+        handleError(err);
+      }
     };
     fetch();
-  }, []);
+  }, [contracts]);
+
   return (
     <ContributorsListWrapper>
       <TopBar mandatory={false} />
-      <ContributorsListTitle>CONTRIBUTOR DIRECTORY</ContributorsListTitle>
-      <AliasesWrapper>
-        {members.map((member: Member, i: number) => (
-          <Alias key={'alias' + i}>@{member.alias}</Alias>
-        ))}
-      </AliasesWrapper>
+      <ContributorListBodyWrapper>
+        <Title>CONTRIBUTOR DIRECTORY</Title>
+        <AliasesWrapper>
+          {members.map((member: Member, i: number) => (
+            <Alias key={'alias' + i}>@{member.alias}</Alias>
+          ))}
+        </AliasesWrapper>
+      </ContributorListBodyWrapper>
     </ContributorsListWrapper>
   );
 };

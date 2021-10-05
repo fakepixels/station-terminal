@@ -17,6 +17,8 @@ import membersABI from '../../utils/abi/Members.json';
 import peerRewardsABI from '../../utils/abi/PeerRewards.json';
 import tokenABI from '../../utils/abi/Token.json';
 
+declare const window: any;
+
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -48,14 +50,19 @@ const TitleBorderInset = styled.div`
 const TitleText = styled.h1`
   font-family: Resistance;
   color: ${(props) => props.theme.colors.white};
-  margin: 0px;
+  margin: 0px 50px;
   font-size: 80px;
   @media (max-height: 830px) {
     font-size: 40px;
   }
 `;
 
-const Title = ({ daoName }: { daoName: string }): JSX.Element => {
+interface titleProps {
+  daoName: string;
+}
+
+const Title = (props: titleProps): JSX.Element => {
+  const { daoName } = props;
   return (
     <TitleWrapper>
       <TitleBorderInset>
@@ -78,8 +85,16 @@ const ContentWrapper = styled.div`
   }
 `;
 
+const getSigner = () => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+  return provider.getSigner();
+};
+
 const Home = (): JSX.Element => {
   const router = useRouter();
+  const web3 = useWeb3();
+  const { setContracts } = useContracts();
+
   let { orgName } = router.query;
 
   // TODO: This is to fix a type issue. Clean this up later
@@ -87,15 +102,11 @@ const Home = (): JSX.Element => {
 
   const [osContractAddress, setOSContractAddress] = React.useState('');
 
-  const web3 = useWeb3();
-  const { setContracts } = useContracts();
-
   // get address of OS
   const getOS = async () => {
     if (!orgName || !web3) return;
     const defaultOSFactoryContractAddress = process.env
       .NEXT_PUBLIC_CONTRACT_DEFAULT_OS_FACTORY_ADDRESS as string;
-
     const osFactoryContract = new ethers.Contract(
       defaultOSFactoryContractAddress,
       defaultOSFactoryABI,
@@ -104,7 +115,7 @@ const Home = (): JSX.Element => {
 
     try {
       const address = await osFactoryContract.osMap(
-        ethers.utils.formatBytes32String(orgName as string),
+        ethers.utils.formatBytes32String('testOs'),
       );
       setOSContractAddress(address);
     } catch (err) {
@@ -139,12 +150,12 @@ const Home = (): JSX.Element => {
     });
 
     try {
+      const signer = getSigner();
       const addresses = await Promise.all(requests);
       moduleABIs.map((elem, i) => {
-        const newContract = new ethers.Contract(addresses[i], elem.abi, web3);
+        const newContract = new ethers.Contract(addresses[i], elem.abi, signer);
         newContracts[elem.name] = newContract;
       });
-      console.log('newContractsAre', newContracts);
       setContracts(
         (prevState: Contracts): Contracts => ({
           ...prevState,
@@ -173,7 +184,7 @@ const Home = (): JSX.Element => {
           <OrgSummary />
         </ContentWrapper>
       </PageWrapper>
-      <Footer></Footer>
+      <Footer />
     </>
   );
 };

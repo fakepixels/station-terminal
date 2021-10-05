@@ -1,11 +1,10 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
 import { useContracts, useAccount } from '../shared/contexts';
-
 import Button from '../components/shared/Button';
-import ContributionModal from '../components/Contributions/ContributionsModal';
 import ClaimRewardsModal from '../components/ClaimRewards/ClaimRewardsModal';
 import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
+import EndorsementModal from './Endorsement/EndorsementPage';
 
 const FooterWrapper = styled.div`
   width: 100%;
@@ -75,7 +74,9 @@ const FooterActions = styled.div`
   margin-right: 20px;
 `;
 
-const FooterActionButton = styled(Button)``;
+const FooterActionButton = styled(Button)`
+  width: 200px;
+`;
 
 const Footer = (): JSX.Element => {
   const { contracts } = useContracts();
@@ -86,21 +87,24 @@ const Footer = (): JSX.Element => {
   const [totalTokensOwned, setTokensOwned] = React.useState(0);
   // TODO: count staked tokens
   const [totalTokensStaked] = React.useState(0);
+  const [totalEndorsementsReceived, setTotalEndorsementsReceived] =
+    React.useState<number | null>(0);
 
-  const [isContributionModalOpen, setIsContributionModalOpen] =
-    React.useState(false);
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
     React.useState(false);
   const [isGiveRewardsModalOpen, setIsGiveRewardsModalOpen] =
     React.useState(false);
-  const handleCloseContributionModal = () => {
-    setIsContributionModalOpen(false);
-  };
+  const [isEndorsementModalOpen, setIsEndorsementModalOpen] =
+    React.useState<boolean>(false);
+
   const handleCloseClaimRewardsModal = () => {
     setIsClaimRewardsModalOpen(false);
   };
   const handleCloseGiveRewardsModal = () => {
     setIsGiveRewardsModalOpen(false);
+  };
+  const handleCloseEndorsementModal = () => {
+    setIsEndorsementModalOpen(false);
   };
 
   const getSymbol = async () => {
@@ -144,20 +148,20 @@ const Footer = (): JSX.Element => {
     getTokenBalance(account);
   }, [account, contracts]);
 
-  const calculatePctOwnership = () => {
+  const calculatePctOwnership = (): number => {
     if (!totalTokenSupply) return 0;
     return (totalTokensOwned + totalTokensStaked) / totalTokenSupply;
   };
 
   return (
     <>
-      <ContributionModal
-        isOpen={isContributionModalOpen}
-        onRequestClose={handleCloseContributionModal}
-      />
       <ClaimRewardsModal
         isOpen={isClaimRewardsModalOpen}
         onRequestClose={handleCloseClaimRewardsModal}
+      />
+      <EndorsementModal
+        isOpen={isEndorsementModalOpen}
+        onRequestClose={handleCloseEndorsementModal}
       />
       <GiveRewardsModal
         isOpen={isGiveRewardsModalOpen}
@@ -175,7 +179,7 @@ const Footer = (): JSX.Element => {
           />
           <FooterStat
             description={'TOTAL ENDORSEMENTS RECEIVED'}
-            value={'1,235'}
+            value={totalEndorsementsReceived?.toString() || ''}
           />
         </FooterStats>
         <FooterActions>
@@ -188,7 +192,7 @@ const Footer = (): JSX.Element => {
           </FooterActionButton>
           <FooterActionButton
             onClick={() => {
-              setIsContributionModalOpen(true);
+              setIsEndorsementModalOpen(true);
             }}
           >
             ENDORSE
