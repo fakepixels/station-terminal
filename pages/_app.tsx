@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
 
-import client from '../shared/apollo-client';
+import { client } from '../apollo/client';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
 import {

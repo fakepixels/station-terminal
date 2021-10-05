@@ -1,5 +1,7 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
+import { client } from '../apollo/client';
+import { MEMBERS } from '../apollo/queries';
 
 import TopBar from './shared/TopBar';
 
@@ -27,41 +29,41 @@ const Alias = styled.div`
   font-family: Favorit Pro;
 `;
 
-const ContributorsList = (): JSX.Element => {
-  const aliases = [
-    '@mindapi',
-    '@fakepixels',
-    '@zaz',
-    '@scottsgc',
-    '@fullyallocated',
-    '@tsully',
-    '@mindapi',
-    '@fakepixels',
-    '@zaz',
-    '@scottsgc',
-    '@fullyallocated',
-    '@tsully',
-    '@mindapi',
-    '@fakepixels',
-    '@zaz',
-    '@scottsgc',
-    '@fullyallocated',
-    '@tsully',
-    '@mindapi',
-    '@fakepixels',
-    '@zaz',
-    '@scottsgc',
-    '@fullyallocated',
-    '@tsully',
-  ];
+type Member = {
+  alias: string;
+  id: string;
+};
 
+const ContributorsList = (): JSX.Element => {
+  const [members, setMembers] = React.useState<Array<Member>>([]);
+
+  React.useEffect(() => {
+    const fetch = () => {
+      //testOS os address to use as an example. Remove later
+      const testOS = '0xb7a5bd0345ef1cc5e66bf61bdec17d2461fbd968';
+      client
+        .query({
+          query: MEMBERS,
+          variables: {
+            os: testOS,
+          },
+        })
+        .then((res) => {
+          setMembers(res.data.members);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    };
+    fetch();
+  }, []);
   return (
     <ContributorsListWrapper>
       <TopBar mandatory={false} />
       <ContributorsListTitle>CONTRIBUTOR DIRECTORY</ContributorsListTitle>
       <AliasesWrapper>
-        {aliases.map((alias, i) => (
-          <Alias key={'alias' + i}>{alias}</Alias>
+        {members.map((member: Member, i: number) => (
+          <Alias key={'alias' + i}>@{member.alias}</Alias>
         ))}
       </AliasesWrapper>
     </ContributorsListWrapper>

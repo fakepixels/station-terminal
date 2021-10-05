@@ -10,4 +10,3 @@
    ```
 
 1. Navigate to http://localhost:3000/Default%20Dao. Note: `Default Dao` was one of the DAOs created in the seed script.
-
