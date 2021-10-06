@@ -16,3 +16,10 @@ export interface PeerRewardsRegistration {
   id: string;
   member: Member;
 }
+
+// TODO: Add complete types
+export interface Allocation {
+  id: string;
+  from: Member;
+  rewards: number;
+}
