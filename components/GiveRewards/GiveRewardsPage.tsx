@@ -3,9 +3,9 @@ import Modal from '../shared/Modal';
 import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Button from '../shared/Button';
-import Input from '../shared/Input/Index';
+import Input from '../shared/Input';
 import { useAccount, useContracts } from '../../shared/contexts';
-import { Divider } from '../shared/Divider/Index';
+import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../utils/apollo/client';
 import {
