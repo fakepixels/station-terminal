@@ -34,9 +34,14 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
     fetchClaimableRewards(epoch);
   };
 
-  const calculateRewardPercentage = (reward: number): number => {
+  const calculateTotalRewardsRecieved = (): number => {
     let total = 0;
     for (const key in members) total += members[key].rewards;
+    return total;
+  };
+
+  const calculateRewardPercentage = (reward: number): number => {
+    const total = calculateTotalRewardsRecieved();
     return Math.round((reward / total) * 10000) / 100;
   };
 
@@ -112,7 +117,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
         </RewardModalHello>
         <RewardModalSubheader>
           <Body1>Rewards received</Body1>
-          <Body1>100</Body1>
+          <Body1>{calculateTotalRewardsRecieved()}</Body1>
         </RewardModalSubheader>
       </RewardHeaderArea>
       <BottomCTAContainer>
