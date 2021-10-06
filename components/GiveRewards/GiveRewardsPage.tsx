@@ -85,6 +85,8 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     );
     let totalPointsRegisteredForEpoch =
       await contracts.PAY.totalPointsRegisteredForEpoch(selectedEpoch);
+    //Possible bug if browsing different epochs and contributor epoch rewards changed.
+    //Fix later by fetching from subgraph instead
     let epochRewards = await contracts.PAY.CONTRIBUTOR_EPOCH_REWARDS();
     pointsRegisteredByMember = pointsRegisteredByMember.toNumber();
     totalPointsRegisteredForEpoch = totalPointsRegisteredForEpoch.toNumber();
@@ -233,7 +235,9 @@ const GiveRewards = (props: ownProps): JSX.Element => {
               </RewardTableHeaderText>
             </RewardTableRowContainer>
             {members.map((registration: PeerRewardsRegistration) => (
-              <RewardTableRowContainer key={registration.member.address}>
+              <RewardTableRowContainer
+                key={registration.member.address + selectedEpoch}
+              >
                 <td>@{registration.member.alias}</td>
                 <td>{calculateRewardsToGive(registration.member.address)}</td>
                 <tr>
