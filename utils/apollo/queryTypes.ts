@@ -10,3 +10,9 @@ export interface Member {
   alias: string;
   endorsementsReceived: string;
 }
+
+// TODO: Add complete types
+export interface PeerRewardsRegistration {
+  id: string;
+  member: Member;
+}

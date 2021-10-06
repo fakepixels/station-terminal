@@ -72,7 +72,7 @@ const MintPage = (): JSX.Element => {
 
   useEffect(() => {
     fetchAvailableEndorsements();
-    getTokenBalance(account);
+    getTokenBalance(account || '');
   }, [contracts, account]);
 
   return (

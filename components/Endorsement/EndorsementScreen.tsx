@@ -7,13 +7,13 @@ import { formatMembers, Page } from './helper';
 import { useContracts, useEndorsement } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
-import { client } from '../../apollo/client';
-import { ENDORSEMENTS } from '../../apollo/queries';
-import { Member } from '../../apollo/queryTypes';
+import { client } from '../../utils/apollo/client';
+import { ENDORSEMENTS } from '../../utils/apollo/queries';
+import { Member } from '../../utils/apollo/queryTypes';
 import {
   getAvailableEndorsements,
   handleError,
-} from '../../utils/contract/endorsement';
+} from '../../utils/contract/helper';
 import TextLoadingDots from '../shared/Loading/TextDots';
 import { useWeb3React } from '@web3-react/core';
 

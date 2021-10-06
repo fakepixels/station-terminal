@@ -1,4 +1,4 @@
-import { Member } from '../../apollo/queryTypes';
+import { Member } from '../../utils/apollo/queryTypes';
 
 export enum Page {
   'endorse',
