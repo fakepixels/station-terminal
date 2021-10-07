@@ -38,7 +38,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
 
   const calculateTotalRewardsRecieved = (): number => {
     let total = 0;
-    for (const key in members) total += members[key].rewards;
+    for (const key in members) total += Number(members[key].rewards);
     return total;
   };
 
@@ -56,12 +56,14 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
 
   const fetchClaimableRewards = async (epoch: number) => {
     try {
+      if (!account || !contracts || !contracts.OS) return;
+
       const os = contracts.OS.address.toLowerCase();
       const rewardsFromMembers = await client.query({
         query: PEER_REWARDS_CLAIMABLE,
         variables: {
-          os: contracts.OS.address.toLowerCase(),
-          to: `${os}-${account}`,
+          os,
+          to: `${os}-${account.toLowerCase()}`,
           epochNumber: epoch,
         },
       });
@@ -153,7 +155,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
                 <td>@{allocation.from.alias}</td>
                 <td>{`${allocation.rewards} / ${calculateRewardPercentage(
                   allocation.rewards,
-                )}`}</td>
+                )} %`}</td>
               </RewardTableRowContainer>
             ))}
           </RewardTable>
@@ -229,6 +231,7 @@ const RewardTable = styled.table`
 
 const RewardTableRowContainer = styled.tr`
   text-align: left;
+  margin-bottom: 15px;
 `;
 
 const BottomCTAContainer = styled.div`
