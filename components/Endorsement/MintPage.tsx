@@ -11,7 +11,7 @@ import { MintMultipler } from './helper';
 import {
   getAvailableEndorsements,
   handleError,
-} from '../../utils/contract/endorsement';
+} from '../../utils/contract/helper';
 import { useWeb3React } from '@web3-react/core';
 
 const MintPage = (): JSX.Element => {
@@ -34,10 +34,10 @@ const MintPage = (): JSX.Element => {
   };
 
   const fetchAvailableEndorsements = useCallback(async () => {
-    if (!contracts || !contracts.MBR) return;
+    if (!contracts || !contracts.MBR || !account) return;
     try {
       setAvailableEndorsements(
-        await getAvailableEndorsements(contracts.MBR, account),
+        await getAvailableEndorsements(contracts.MBR, account || ''),
       );
     } catch (err: any) {
       handleError(err);

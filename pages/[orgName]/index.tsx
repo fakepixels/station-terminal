@@ -18,7 +18,7 @@ import { useWeb3React } from '@web3-react/core';
 import { useEagerConnect } from '../../shared/wallet/hooks';
 import Login from '../../components/Login/Login';
 import Alias from '../../components/Login/AliasBox';
-import { handleError } from '../../utils/contract/endorsement';
+import { handleError } from '../../utils/contract/helper';
 
 declare const window: any;
 
