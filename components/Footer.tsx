@@ -2,9 +2,10 @@ import styled from '@emotion/styled';
 import * as React from 'react';
 import { useContracts, useAccount } from '../shared/contexts';
 import Button from '../components/shared/Button';
-import ClaimRewardsModal from '../components/ClaimRewards/ClaimRewardsModal';
-import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
+import ClaimRewardsModal from './ClaimRewards/ClaimRewardsPage';
+import GiveRewardsModal from './GiveRewards/GiveRewardsPage';
 import EndorsementModal from './Endorsement/EndorsementPage';
+import { handleError } from '../utils/contract/helper';
 
 const FooterWrapper = styled.div`
   width: 100%;
@@ -87,8 +88,7 @@ const Footer = (): JSX.Element => {
   const [totalTokensOwned, setTokensOwned] = React.useState(0);
   // TODO: count staked tokens
   const [totalTokensStaked] = React.useState(0);
-  const [totalEndorsementsReceived, setTotalEndorsementsReceived] =
-    React.useState<number | null>(0);
+  const [totalEndorsementsReceived] = React.useState<number | null>(0);
 
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
     React.useState(false);
@@ -113,7 +113,7 @@ const Footer = (): JSX.Element => {
       const res = await contracts.TKN.symbol();
       setTokenSymbol(res);
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
@@ -123,7 +123,7 @@ const Footer = (): JSX.Element => {
       const res = await contracts.TKN.totalSupply();
       setTokenSupply(res.toNumber());
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
@@ -133,7 +133,7 @@ const Footer = (): JSX.Element => {
       const res = await contracts.TKN.balanceOf(account);
       setTokensOwned(res.toNumber());
     } catch (err) {
-      console.log('ERR: ', err);
+      handleError(err);
     }
   };
 
