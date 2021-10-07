@@ -61,7 +61,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
         query: PEER_REWARDS_CLAIMABLE,
         variables: {
           os: contracts.OS.address.toLowerCase(),
-          member: `${os}-${account}`,
+          to: `${os}-${account}`,
           epochNumber: epoch,
         },
       });

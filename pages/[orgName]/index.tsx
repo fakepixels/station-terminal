@@ -137,7 +137,7 @@ const Home = (): JSX.Element => {
 
   // create contract for each module and set the contracts to state
   const getModules = async () => {
-    if (!osContractAddress) return;
+    if (!osContractAddress || !library) return;
 
     const newContracts: any = {};
 

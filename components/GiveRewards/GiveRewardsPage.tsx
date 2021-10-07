@@ -61,6 +61,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   };
 
   const onSingleRewardChange = (key: string, value: number): void => {
+    if (value < 0) return;
     const newRewards = { ...rewards };
     newRewards[key] = value;
     setRewards(newRewards);
@@ -69,9 +70,10 @@ const GiveRewards = (props: ownProps): JSX.Element => {
 
   const calculateRewardsToGive = useCallback(
     (address: string): string => {
-      const rewards = Math.round(
-        Number(rewardPercents[address]) * rewardsAvailableToGive,
-      );
+      const rewards =
+        Math.round(
+          Number(rewardPercents[address]) * rewardsAvailableToGive * 100,
+        ) / 10000;
       return rewardPercents[address]
         ? `${rewards} / ${rewardPercents[address]} %`
         : '';
@@ -86,26 +88,37 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     return epoch;
   };
 
-  const fetchRewardsAvailableToGive = async (): Promise<number> => {
+  const fetchRewardsAvailableToGive = async (
+    epoch: number,
+  ): Promise<number> => {
+    if (!account || !contracts || !contracts.PAY) return 0;
+
     let pointsRegisteredByMember = await contracts.PAY.pointsRegisteredForEpoch(
-      selectedEpoch,
+      epoch,
       account,
     );
     let totalPointsRegisteredForEpoch =
-      await contracts.PAY.totalPointsRegisteredForEpoch(selectedEpoch);
+      await contracts.PAY.totalPointsRegisteredForEpoch(epoch);
     //Possible bug if browsing different epochs and contributor epoch rewards changed.
     //Fix later by fetching from subgraph instead
     let epochRewards = await contracts.PAY.CONTRIBUTOR_EPOCH_REWARDS();
     pointsRegisteredByMember = pointsRegisteredByMember.toNumber();
     totalPointsRegisteredForEpoch = totalPointsRegisteredForEpoch.toNumber();
     epochRewards = epochRewards.toNumber();
+
     return (
-      (epochRewards * pointsRegisteredByMember) / totalPointsRegisteredForEpoch
+      Math.round(
+        epochRewards *
+          (pointsRegisteredByMember / totalPointsRegisteredForEpoch) *
+          1000,
+      ) / 1000
     );
   };
 
   const fetchPeerRewards = async (epoch: number) => {
     try {
+      if (!account || !contracts || !contracts.OS) return;
+
       const os = contracts.OS.address.toLowerCase();
       const registeredMembers = await client.query({
         query: PEER_REWARDS_REGISTERED_MEMBERS,
@@ -119,7 +132,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         query: ALLOCATIONS_FROM_MEMBER,
         variables: {
           os: contracts.OS.address.toLowerCase(),
-          member: `${os}-${account}`,
+          from: `${os}-${account.toLowerCase()}`,
           epochNumber: epoch,
         },
       });
@@ -175,7 +188,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         isLoading(true);
         const epoch = await fetchCurrentEpoch();
         await fetchPeerRewards(epoch);
-        setRewardsAvailableToGive(await fetchRewardsAvailableToGive());
+        setRewardsAvailableToGive(await fetchRewardsAvailableToGive(epoch));
       } catch (err: any) {
         handleError(err);
       } finally {
@@ -243,6 +256,10 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         <Body1>
           Reward those who empower and enable you to be a better contributor
         </Body1>
+        <RewardModalSubheader>
+          <Body1>Rewards to give</Body1>
+          <Body1>{rewardsAvailableToGive}</Body1>
+        </RewardModalSubheader>
       </RewardHeaderArea>
 
       {currentEpoch == selectedEpoch && !isRegistered ? (
@@ -358,6 +375,15 @@ const GiveRewardsModalWrapper = styled(Modal)`
 
 const RewardHeaderArea = styled.div`
   padding: 20px;
+`;
+
+const RewardModalSubheader = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
 `;
 
 const WeekContainer = styled.div`

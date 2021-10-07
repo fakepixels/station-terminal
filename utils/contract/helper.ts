@@ -16,6 +16,6 @@ export const getAvailableEndorsements = async (
 };
 
 export const handleError = async (err: any): Promise<void> => {
-  console.log(err);
-  toast.error(err.message);
+  if (err.data && err.data.message) toast.error(err.data.message);
+  else if (err.message) toast.error(err.message);
 };
