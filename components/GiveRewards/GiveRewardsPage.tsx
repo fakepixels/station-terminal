@@ -1,6 +1,5 @@
-import * as React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Modal from '../shared/Modal';
-import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
@@ -36,6 +35,9 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   const [rewardsAvailableToGive, setRewardsAvailableToGive] =
     useState<number>(0);
 
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [hasCommitted, setHasCommitted] = useState<boolean>(false);
+
   const onSelectedEpochChange = (epoch: number): void => {
     epoch = Number(epoch);
     if (epoch < 1 || epoch > currentEpoch || epoch % 1 > 0) return;
@@ -59,17 +61,22 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   const onSingleRewardChange = (key: string, value: number): void => {
     const newRewards = { ...rewards };
     newRewards[key] = value;
-    // newRewards[key] = value;
+    console.log(newRewards);
     setRewards(newRewards);
     updatePercents(newRewards);
   };
 
-  const calculateRewardsToGive = (address: string): string => {
-    const rewards = Number(rewardPercents[address]) * rewardsAvailableToGive;
-    return rewardPercents[address]
-      ? `${rewards} / ${rewardPercents[address]} %`
-      : '';
-  };
+  const calculateRewardsToGive = useCallback(
+    (address: string): string => {
+      const rewards = Math.round(
+        Number(rewardPercents[address]) * rewardsAvailableToGive,
+      );
+      return rewardPercents[address]
+        ? `${rewards} / ${rewardPercents[address]} %`
+        : '';
+    },
+    [rewardPercents, rewardsAvailableToGive],
+  );
 
   const fetchCurrentEpoch = async (): Promise<number> => {
     const epoch = await contracts.EPC.current();
@@ -116,6 +123,8 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         },
       });
 
+      // TODO: Allocations aren't fetching correctly from subgraph
+
       const newRewards: any = {};
       for (const a in allocations.data.allocations) {
         const allocation = allocations.data.allocations[a];
@@ -142,7 +151,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       isLoading(true);
       await contracts.PAY.commitAllocation();
     } catch (err: any) {
-      isLoading(false);
       handleError(err);
     } finally {
       isLoading(false);
@@ -154,7 +162,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       isLoading(true);
       await contracts.PAY.register();
     } catch (err: any) {
-      isLoading(false);
       handleError(err);
     } finally {
       isLoading(false);
@@ -169,7 +176,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         await fetchPeerRewards(epoch);
         setRewardsAvailableToGive(await fetchRewardsAvailableToGive());
       } catch (err: any) {
-        console.log(err);
+        handleError(err);
       } finally {
         isLoading(false);
       }
@@ -179,6 +186,43 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       fetch();
     }
   }, [contracts]);
+
+  // set registration date
+  useEffect(() => {
+    const fetch = async () => {
+      if (!account || !contracts || !contracts.PAY) return;
+      try {
+        const res: boolean = await contracts.PAY.eligibleForRewards(
+          selectedEpoch,
+          account,
+        );
+        setIsRegistered(res);
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    fetch();
+  }, [selectedEpoch, account, contracts]);
+
+  // check whether user has committed yet
+  useEffect(() => {
+    const fetch = async () => {
+      if (!account || !contracts || !contracts.PAY) return;
+      try {
+        const res: boolean = await contracts.PAY.participationHistory(
+          selectedEpoch,
+          account,
+        );
+        console.log(res);
+        setHasCommitted(res);
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    fetch();
+  }, [selectedEpoch, account, contracts]);
 
   return (
     <GiveRewardsModalWrapper onRequestClose={onRequestClose} isOpen={isOpen}>
@@ -199,87 +243,98 @@ const GiveRewards = (props: ownProps): JSX.Element => {
           Reward those who empower and enable you to be a better contributor
         </Body1>
       </RewardHeaderArea>
-      <BottomCTAContainer>
-        {currentEpoch != selectedEpoch ? null : (
+
+      {currentEpoch == selectedEpoch && !isRegistered ? (
+        <BottomCTAContainer>
           <Button width="100%" onClick={() => registerForPeerRewards()}>
             REGISTER FOR NEXT WEEK
           </Button>
-        )}
-      </BottomCTAContainer>
-      <BottomCTAContainer>
-        <Button
-          width="100%"
-          onClick={() => commitAllocation()}
-          disabled={currentEpoch != selectedEpoch}
-        >
-          SAVE
-        </Button>
-      </BottomCTAContainer>
-      <Divider />
-      <RewardTableContainer>
-        {loading ? (
-          <div>Loading ...</div>
-        ) : (
-          <RewardTable>
-            <RewardTableRowContainer>
-              <RewardTableHeaderText>
-                <Heading4>Contributors</Heading4>
-              </RewardTableHeaderText>
+        </BottomCTAContainer>
+      ) : null}
 
-              <RewardTableHeaderText>
-                <Heading4>Percent to Reward</Heading4>
-              </RewardTableHeaderText>
+      {isRegistered && currentEpoch == selectedEpoch && (
+        <BottomCTAContainer>
+          <Button width="100%" onClick={() => commitAllocation()}>
+            SAVE ALL
+          </Button>
+          <DisclaimerText>
+            * Once you save, you cannot allocate this epoch
+          </DisclaimerText>
+        </BottomCTAContainer>
+      )}
 
-              <RewardTableHeaderText>
-                <Heading4>Points</Heading4>
-              </RewardTableHeaderText>
-            </RewardTableRowContainer>
-            {members.map((registration: PeerRewardsRegistration) => (
-              <RewardTableRowContainer
-                key={registration.member.address + selectedEpoch}
-              >
-                <td>@{registration.member.alias}</td>
-                <td>{calculateRewardsToGive(registration.member.address)}</td>
-                <tr>
-                  <RewardTableCell>
-                    <Input
-                      value={rewards[registration.member.address]}
-                      type="number"
-                      onChange={(e: any) =>
-                        onSingleRewardChange(
-                          registration.member.address,
-                          e.target.value,
-                        )
-                      }
-                      rightFlatBorder
-                      disabled={currentEpoch != selectedEpoch}
-                    />
-                    <Button
-                      onClick={() =>
-                        configureAllocation(
-                          registration.member.address,
-                          rewards[registration.member.address],
-                        )
-                      }
-                      leftFlatBorder
-                      disabled={currentEpoch != selectedEpoch}
-                    >
-                      Reward
-                    </Button>
-                  </RewardTableCell>
-                </tr>
-              </RewardTableRowContainer>
-            ))}
-          </RewardTable>
-        )}
-      </RewardTableContainer>
+      {isRegistered && (
+        <>
+          <Divider />
+          <RewardTableContainer>
+            {loading ? (
+              <div>Loading ...</div>
+            ) : (
+              <RewardTable>
+                <RewardTableRowContainer>
+                  <RewardTableHeaderText>
+                    <Heading4>Contributors</Heading4>
+                  </RewardTableHeaderText>
+
+                  <RewardTableHeaderText>
+                    <Heading4>Percent to Reward</Heading4>
+                  </RewardTableHeaderText>
+
+                  <RewardTableHeaderText>
+                    <Heading4>Points</Heading4>
+                  </RewardTableHeaderText>
+                </RewardTableRowContainer>
+                {members.map((registration: PeerRewardsRegistration) => (
+                  <RewardTableRowContainer
+                    key={registration.member.address + selectedEpoch}
+                  >
+                    <td>@{registration.member.alias}</td>
+                    <td>
+                      {calculateRewardsToGive(registration.member.address)}
+                    </td>
+                    <tr>
+                      <RewardTableCell>
+                        <Input
+                          value={rewards[registration.member.address]}
+                          type="number"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            onSingleRewardChange(
+                              registration.member.address,
+                              Number(e.target.value),
+                            )
+                          }
+                          rightFlatBorder
+                          disabled={
+                            currentEpoch != selectedEpoch || hasCommitted
+                          }
+                        />
+                        <Button
+                          onClick={() =>
+                            configureAllocation(
+                              registration.member.address,
+                              rewards[registration.member.address],
+                            )
+                          }
+                          leftFlatBorder
+                          disabled={currentEpoch != selectedEpoch}
+                        >
+                          Reward
+                        </Button>
+                      </RewardTableCell>
+                    </tr>
+                  </RewardTableRowContainer>
+                ))}
+              </RewardTable>
+            )}
+          </RewardTableContainer>
+        </>
+      )}
     </GiveRewardsModalWrapper>
   );
 };
 
 const GiveRewardsModalWrapper = styled(Modal)`
   position: absolute;
-  top: 10vh;
   left: 0px;
   right: 0px;
   bottom: initial;
@@ -288,9 +343,9 @@ const GiveRewardsModalWrapper = styled(Modal)`
   outline: none;
   margin: 0 auto 0 auto;
 
-  min-height: 592px;
+  min-height: 600px;
   background: ${(props) => props.theme.colors.black};
-  color: white;
+  color: ${(props) => props.theme.colors.white};
 
   @media (min-width: 768px) {
     top: 10vh;
@@ -345,6 +400,11 @@ const RewardTableCell = styled.td`
 
 const BottomCTAContainer = styled.div`
   padding: 0px 20px 20px 20px;
+`;
+
+const DisclaimerText = styled(Body1)`
+  color: ${(props) => props.theme.colors.gray};
+  margin-top: 6px;
 `;
 
 export default GiveRewards;
