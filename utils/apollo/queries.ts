@@ -37,6 +37,7 @@ export const ENDORSEMENTS_FROM_MEMBER = gql`
       amount
       to {
         id
+        address
         alias
       }
     }

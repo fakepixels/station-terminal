@@ -8,7 +8,10 @@ import { useContracts, useEndorsement } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../utils/apollo/client';
-import { ENDORSEMENTS } from '../../utils/apollo/queries';
+import {
+  ENDORSEMENTS,
+  ENDORSEMENTS_FROM_MEMBER,
+} from '../../utils/apollo/queries';
 import { Member } from '../../utils/apollo/queryTypes';
 import {
   getAvailableEndorsements,
@@ -37,12 +40,29 @@ const EndorsementScreen = (): JSX.Element => {
 
   const fetchEndorsements = async () => {
     try {
+      if (!account || !contracts || !contracts.OS) return;
+
+      const os = contracts.OS.address.toLowerCase();
       const { data } = await client.query({
         query: ENDORSEMENTS,
-        variables: { os: contracts.OS.address.toLowerCase() },
+        variables: { os },
       });
 
+      const endorsements = await client.query({
+        query: ENDORSEMENTS_FROM_MEMBER,
+        variables: {
+          os,
+          from: `${os}-${account.toLowerCase()}`,
+        },
+      });
+
+      const newEndorsements: any = {};
+      for (const a in endorsements.data.endorsements) {
+        const endorsement = endorsements.data.endorsements[a];
+        newEndorsements[endorsement.to.address] = endorsement.amount * 1000;
+      }
       setMembers(formatMembers(data.members));
+      setEndorsements(newEndorsements);
     } catch (err: any) {
       handleError(err);
     }

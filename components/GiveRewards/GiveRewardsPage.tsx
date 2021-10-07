@@ -123,7 +123,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       const registeredMembers = await client.query({
         query: PEER_REWARDS_REGISTERED_MEMBERS,
         variables: {
-          os: contracts.OS.address.toLowerCase(),
+          os,
           epochNumber: epoch,
         },
       });
@@ -131,7 +131,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       const allocations = await client.query({
         query: ALLOCATIONS_FROM_MEMBER,
         variables: {
-          os: contracts.OS.address.toLowerCase(),
+          os,
           from: `${os}-${account.toLowerCase()}`,
           epochNumber: epoch,
         },
