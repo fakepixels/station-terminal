@@ -1,7 +1,9 @@
-import * as React from 'react';
+import { useState } from 'react';
 import styled from '@emotion/styled';
 import { GlobalNavigation } from '../../shared/style/theme';
-import { useAccount } from '../../shared/contexts';
+import { Web3Provider } from '@ethersproject/providers';
+import { useWeb3React } from '@web3-react/core';
+import Chevron from '../assets/Chevron';
 
 const Wrapper = styled.div`
   display: flex;
@@ -47,20 +49,22 @@ const DropdownWrapper = styled.div`
 const StationLogoText = styled.div`
   font-size: 30px;
   font-family: 'VT323';
+  text-transform: uppercase;
 `;
 
-interface DropdownProps {
-  address: string;
-}
+const DisconnectText = styled(GlobalNavigation)`
+  cursor: pointer;
+`;
 
-const Dropdown = (props: DropdownProps): JSX.Element => {
-  const { address } = props;
-  return (
-    <DropdownWrapper>
-      <GlobalNavigation>{address}</GlobalNavigation>
-    </DropdownWrapper>
-  );
-};
+const DropdownContainer = styled.div`
+  position: absolute;
+  padding: 16px;
+  top: 57px;
+  border: 1px solid black;
+  border-right: none;
+  right: 0;
+  background-color: ${(props) => props.theme.colors.white};
+`;
 
 const trimmedAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(
@@ -69,8 +73,23 @@ const trimmedAddress = (address: string): string => {
   )}`;
 };
 
+const ChevronContainer = styled.div`
+  margin-left: 16px;
+  cursor: pointer;
+`;
+
+const Flipped = styled.div`
+  transform: rotate(180deg);
+`;
+
 const NavBar = (): JSX.Element => {
-  const account = useAccount();
+  const { active, account, deactivate } = useWeb3React<Web3Provider>();
+
+  const [isDropdownOpen, setIsDropdownOen] = useState<boolean>(false);
+
+  const toggleDropdown = () => {
+    setIsDropdownOen(!isDropdownOpen);
+  };
 
   return (
     <Wrapper>
@@ -81,9 +100,35 @@ const NavBar = (): JSX.Element => {
         />
         <StationLogoText>STATION</StationLogoText>
       </LogoWrapper>
-      <ControlWrapper>
-        <Dropdown address={trimmedAddress(account)} />
-      </ControlWrapper>
+      {active && (
+        <ControlWrapper>
+          <DropdownWrapper>
+            <GlobalNavigation>{trimmedAddress(account || '')}</GlobalNavigation>
+            <ChevronContainer onClick={() => toggleDropdown()}>
+              {isDropdownOpen ? (
+                <Flipped>
+                  <Chevron />
+                </Flipped>
+              ) : (
+                <Chevron />
+              )}
+            </ChevronContainer>
+          </DropdownWrapper>
+
+          {isDropdownOpen && active && (
+            <DropdownContainer>
+              <DisconnectText
+                onClick={() => {
+                  deactivate();
+                  setIsDropdownOen(false);
+                }}
+              >
+                Disconnect
+              </DisconnectText>
+            </DropdownContainer>
+          )}
+        </ControlWrapper>
+      )}
     </Wrapper>
   );
 };

@@ -1,10 +1,12 @@
 import styled from '@emotion/styled';
 import * as React from 'react';
-import { useContracts, useAccount } from '../shared/contexts';
+import { useContracts } from '../shared/contexts';
+import { Web3Provider } from '@ethersproject/providers';
 import Button from '../components/shared/Button';
 import ClaimRewardsModal from '../components/ClaimRewards/ClaimRewardsModal';
 import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
 import EndorsementModal from './Endorsement/EndorsementPage';
+import { useWeb3React } from '@web3-react/core';
 
 const FooterWrapper = styled.div`
   width: 100%;
@@ -80,7 +82,7 @@ const FooterActionButton = styled(Button)`
 
 const Footer = (): JSX.Element => {
   const { contracts } = useContracts();
-  const account = useAccount();
+  const { account } = useWeb3React<Web3Provider>();
 
   const [tokenSymbol, setTokenSymbol] = React.useState('');
   const [totalTokenSupply, setTokenSupply] = React.useState(0);
@@ -140,7 +142,7 @@ const Footer = (): JSX.Element => {
   React.useEffect(() => {
     getSymbol();
     getTokenSupply();
-    getTokenBalance(account);
+    getTokenBalance(account || '');
   }, [contracts]);
 
   React.useEffect(() => {

@@ -1,21 +1,24 @@
 import styled from '@emotion/styled';
-import * as React from 'react';
-import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
+import { Web3Provider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
-import { useWeb3, useContracts, Contracts } from '../../shared/contexts';
-
+import { useContracts, Contracts } from '../../shared/contexts';
 import ContributorsList from '../../components/ContributorsList';
 import OrgSummary from '../../components/OrgSummary';
 import Footer from '../../components/Footer';
 import Layout from '../../components/shared/Layout';
-
 import defaultOSFactoryABI from '../../utils/abi/DefaultOSFactory.json';
 import defaultOSABI from '../../utils/abi/DefaultOS.json';
 import epochABI from '../../utils/abi/Epoch.json';
 import membersABI from '../../utils/abi/Members.json';
 import peerRewardsABI from '../../utils/abi/PeerRewards.json';
 import tokenABI from '../../utils/abi/Token.json';
+import { useWeb3React } from '@web3-react/core';
+import { useEagerConnect } from '../../shared/wallet/hooks';
+import Login from '../../components/Login/Login';
+import Alias from '../../components/Login/AliasBox';
+import { handleError } from '../../utils/contract/endorsement';
 
 declare const window: any;
 
@@ -90,27 +93,36 @@ const getSigner = () => {
   return provider.getSigner();
 };
 
+const moduleABIs = [
+  { name: 'EPC', abi: epochABI },
+  { name: 'TKN', abi: tokenABI },
+  { name: 'MBR', abi: membersABI },
+  { name: 'PAY', abi: peerRewardsABI },
+];
+
 const Home = (): JSX.Element => {
   const router = useRouter();
-  const web3 = useWeb3();
-  const { setContracts } = useContracts();
+  const tried = useEagerConnect();
+  const { setContracts, contracts } = useContracts();
+  const { account, library } = useWeb3React<Web3Provider>();
+  const [step, setStep] = useState<number>(0);
 
   let { orgName } = router.query;
 
   // TODO: This is to fix a type issue. Clean this up later
   if (Array.isArray(orgName)) orgName = orgName[0];
 
-  const [osContractAddress, setOSContractAddress] = React.useState('');
+  const [osContractAddress, setOSContractAddress] = useState('');
 
   // get address of OS
   const getOS = async () => {
-    if (!orgName || !web3) return;
+    if (!orgName || !library) return;
     const defaultOSFactoryContractAddress = process.env
       .NEXT_PUBLIC_CONTRACT_DEFAULT_OS_FACTORY_ADDRESS as string;
     const osFactoryContract = new ethers.Contract(
       defaultOSFactoryContractAddress,
       defaultOSFactoryABI,
-      web3,
+      library,
     );
 
     try {
@@ -119,7 +131,7 @@ const Home = (): JSX.Element => {
       );
       setOSContractAddress(address);
     } catch (err) {
-      console.log('ERROR: ', err);
+      handleError(err);
     }
   };
 
@@ -128,17 +140,11 @@ const Home = (): JSX.Element => {
     if (!osContractAddress) return;
 
     const newContracts: any = {};
-    const moduleABIs = [
-      { name: 'EPC', abi: epochABI },
-      { name: 'TKN', abi: tokenABI },
-      { name: 'MBR', abi: membersABI },
-      { name: 'PAY', abi: peerRewardsABI },
-    ];
 
     const osContract = new ethers.Contract(
       osContractAddress,
       defaultOSABI,
-      web3,
+      library,
     );
     newContracts['OS'] = osContract;
 
@@ -163,33 +169,62 @@ const Home = (): JSX.Element => {
         }),
       );
     } catch (err) {
-      console.log('ERROR: ', err);
+      handleError(err);
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     getOS();
-  }, [orgName, web3]);
+  }, [orgName, library]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     getModules();
   }, [osContractAddress]);
 
+  // determine the state of user
+  useEffect(() => {
+    const onMount = async () => {
+      if (!account && tried) {
+        // logged out state
+        setStep(1);
+      } else if (account && tried) {
+        // Logged in state. check if alias is present
+        if (contracts && contracts.MBR && account) {
+          const res = await contracts.MBR.getAliasForMember(account);
+
+          if (res === 0) {
+            setStep(2);
+          } else {
+            setStep(3);
+          }
+        }
+      }
+    };
+
+    onMount();
+  }, [account, tried, contracts]);
+
   return (
     <>
-      <PageWrapper>
-        <Title daoName={orgName ? orgName : ''} />
-        <ContentWrapper>
-          <ContributorsList />
-          <OrgSummary />
-        </ContentWrapper>
-      </PageWrapper>
-      <Footer />
+      {step === 1 && <Login />}
+      {step === 2 && <Alias finishAlias={() => setStep(3)} />}
+      {step === 3 && (
+        <>
+          <PageWrapper>
+            <Title daoName={orgName ? orgName : ''} />
+            <ContentWrapper>
+              <ContributorsList />
+              <OrgSummary />
+            </ContentWrapper>
+          </PageWrapper>
+          <Footer />
+        </>
+      )}
     </>
   );
 };
 
-Home.getLayout = function getLayout(page: ReactElement) {
+Home.getLayout = function getLayout(page: JSX.Element) {
   return <Layout>{page}</Layout>;
 };
 

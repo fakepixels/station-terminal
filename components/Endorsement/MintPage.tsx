@@ -2,26 +2,28 @@ import { useState, useEffect, useCallback } from 'react';
 import styled from '@emotion/styled';
 import { toast } from 'react-toastify';
 import { Heading1, CTA0, Body1 } from '../../shared/style/theme';
+import { Web3Provider } from '@ethersproject/providers';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import { Divider, DottedDivider } from '../shared/Divider';
-import { useAccount, useContracts } from '../../shared/contexts';
+import { useContracts } from '../../shared/contexts';
 import { MintMultipler } from './helper';
 import {
   getAvailableEndorsements,
   handleError,
 } from '../../utils/contract/endorsement';
+import { useWeb3React } from '@web3-react/core';
 
 const MintPage = (): JSX.Element => {
+  const { account } = useWeb3React<Web3Provider>();
+  const { contracts } = useContracts();
+
   const [availableEndorsements, setAvailableEndorsements] = useState<
     number | null
   >();
   const [defAvailable, setDefAvailable] = useState<number | null>();
   const [stakeAmount, setStakeAmount] = useState<number>(1); // min 1
   const [lockedWeeks, setLockedWeeks] = useState<number>(50); // min number of weeks
-
-  const account = useAccount();
-  const { contracts } = useContracts();
 
   const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setStakeAmount(Number(e.target.value));

@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import styled from '@emotion/styled';
+import { Web3Provider } from '@ethersproject/providers';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import { formatMembers, Page } from './helper';
-import {
-  useAccount,
-  useContracts,
-  useEndorsement,
-} from '../../shared/contexts';
+import { useContracts, useEndorsement } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../apollo/client';
@@ -18,10 +15,11 @@ import {
   handleError,
 } from '../../utils/contract/endorsement';
 import TextLoadingDots from '../shared/Loading/TextDots';
+import { useWeb3React } from '@web3-react/core';
 
 const EndorsementScreen = (): JSX.Element => {
   const { contracts } = useContracts();
-  const account = useAccount();
+  const { account } = useWeb3React<Web3Provider>();
 
   const [availableEndorsement, setAvailableEndorsements] = useState<
     number | null

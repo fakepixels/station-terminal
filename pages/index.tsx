@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import type { ReactElement } from 'react';
-
 import Button from '../components/shared/Button';
 import ClaimRewardsModal from '../components/ClaimRewards/ClaimRewardsModal';
 import GiveRewardsModal from '../components/GiveRewards/GiveRewardsModal';
 import Layout from '../components/shared/Layout';
 import TopBar from '../components/shared/Topbar';
-
-import { useAccount, useContracts } from '../shared/contexts';
+import { Web3Provider } from '@ethersproject/providers';
+import { useContracts } from '../shared/contexts';
 import EndorsementModal from '../components/Endorsement/EndorsementPage';
 import { Body1, Heading1 } from '../shared/style/theme';
 import { Divider } from '../components/shared/Divider';
+import { useWeb3React } from '@web3-react/core';
 
 const PageWrapper = styled.div`
   display: flex;
@@ -349,7 +349,7 @@ const DAOSummary = (): JSX.Element => {
 
 const Home = (): JSX.Element => {
   const contract = useContracts();
-  const account = useAccount();
+  const { account } = useWeb3React<Web3Provider>();
 
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
     useState<boolean>(false);
