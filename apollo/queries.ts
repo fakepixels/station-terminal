@@ -5,7 +5,6 @@ export const MEMBERS = gql`
   query members($os: String) {
     members(where: { os: $os }) {
       id
-      address
       alias
     }
   }
@@ -17,6 +16,7 @@ export const ENDORSEMENTS = gql`
   query endorsements($os: String) {
     members(where: { os: $os }) {
       address
+      id
       alias
       endorsementsReceived
     }
@@ -46,7 +46,11 @@ export const ENDORSEMENTS_FROM_MEMBER = gql`
 // Allocation points the user gave to other members
 // May have to combine with PEER_REWARDS_REGISTERED_MEMBERS for to meet UI requirements
 export const ALLOCATIONS_FROM_MEMBER = gql`
-  query allocationsFromMember($os: String, $epochNumber: Int, $member: String) {
+  query allocationsFromMember(
+    $os: String
+    $epochNumber: Number
+    $member: String
+  ) {
     allocations(
       where: {
         os: $os
@@ -58,7 +62,7 @@ export const ALLOCATIONS_FROM_MEMBER = gql`
       id
       points
       to {
-        address
+        id
         alias
       }
     }
@@ -67,11 +71,11 @@ export const ALLOCATIONS_FROM_MEMBER = gql`
 
 // Members who are registered for the event
 export const PEER_REWARDS_REGISTERED_MEMBERS = gql`
-  query peerRewardsRegisteredMembers($os: String, $epochNumber: Int) {
+  query peerRewardsRegisteredMembers($os: String, $epochNumber: Number) {
     rewardsRegistrations(where: { os: $os, epochNumber: $epochNumber }) {
       id
       member {
-        address
+        id
         alias
       }
     }
@@ -81,7 +85,11 @@ export const PEER_REWARDS_REGISTERED_MEMBERS = gql`
 // Rewards user received from other members (not points)
 // List of rewards that was given to the users. Can be aggregated to get the total rewards claimable
 export const PEER_REWARDS_CLAIMABLE = gql`
-  query peerRewardsClaimable($os: String, $member: String, $epochNumber: Int) {
+  query peerRewardsClaimable(
+    $os: String
+    $member: String
+    $epochNumber: Number
+  ) {
     allocations(
       where: {
         os: $os
@@ -94,7 +102,7 @@ export const PEER_REWARDS_CLAIMABLE = gql`
       epochNumber
       rewards
       from {
-        address
+        id
         alias
       }
     }

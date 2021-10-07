@@ -10,7 +10,7 @@ import { MintMultipler } from './helper';
 import {
   getAvailableEndorsements,
   handleError,
-} from '../../utils/contract/helper';
+} from '../../utils/contract/endorsement';
 
 const MintPage = (): JSX.Element => {
   const [availableEndorsements, setAvailableEndorsements] = useState<

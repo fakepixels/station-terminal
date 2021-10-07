@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import { client } from '../utils/apollo/client';
-import { MEMBERS } from '../utils/apollo/queries';
+import { client } from '../apollo/client';
+import { MEMBERS } from '../apollo/queries';
 import { useContracts } from '../shared/contexts';
-import { handleError } from '../utils/contract/helper';
+import { handleError } from '../utils/contract/endorsement';
 
 import TopBar from './shared/Topbar';
 import { Body1, Heading1 } from '../shared/style/theme';
