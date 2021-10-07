@@ -1,10 +1,12 @@
 import * as React from 'react';
+import { useWeb3React } from '@web3-react/core';
+import { Web3Provider } from '@ethersproject/providers';
 import Modal from '../shared/Modal';
 import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
-import { useAccount, useContracts } from '../../shared/contexts';
+import { useContracts } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../utils/apollo/client';
@@ -20,7 +22,7 @@ interface ownProps {
 const ClaimRewards = (props: ownProps): JSX.Element => {
   const { isOpen, onRequestClose } = props;
   const { contracts } = useContracts();
-  const account = useAccount();
+  const { account } = useWeb3React<Web3Provider>();
 
   const [currentEpoch, setCurrentEpoch] = useState<number>(0);
   const [selectedEpoch, setSelectedEpoch] = useState<number>(0);

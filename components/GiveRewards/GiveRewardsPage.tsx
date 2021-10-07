@@ -3,7 +3,7 @@ import Modal from '../shared/Modal';
 import styled from '@emotion/styled';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
-import { useAccount, useContracts } from '../../shared/contexts';
+import { useContracts } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../utils/apollo/client';
@@ -13,6 +13,8 @@ import {
 } from '../../utils/apollo/queries';
 import { PeerRewardsRegistration } from '../../utils/apollo/queryTypes';
 import { handleError } from '../../utils/contract/helper';
+import { useWeb3React } from '@web3-react/core';
+import { Web3Provider } from '@ethersproject/providers';
 
 interface ownProps {
   isOpen: boolean;
@@ -22,7 +24,7 @@ interface ownProps {
 const GiveRewards = (props: ownProps): JSX.Element => {
   const { isOpen, onRequestClose } = props;
   const { contracts } = useContracts();
-  const account = useAccount();
+  const { account } = useWeb3React<Web3Provider>();
 
   const [currentEpoch, setCurrentEpoch] = useState<number>(0);
   const [selectedEpoch, setSelectedEpoch] = useState<number>(0);
@@ -61,7 +63,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   const onSingleRewardChange = (key: string, value: number): void => {
     const newRewards = { ...rewards };
     newRewards[key] = value;
-    console.log(newRewards);
     setRewards(newRewards);
     updatePercents(newRewards);
   };
@@ -196,6 +197,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
           selectedEpoch,
           account,
         );
+
         setIsRegistered(res);
       } catch (err) {
         handleError(err);
@@ -214,7 +216,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
           selectedEpoch,
           account,
         );
-        console.log(res);
         setHasCommitted(res);
       } catch (err) {
         handleError(err);
