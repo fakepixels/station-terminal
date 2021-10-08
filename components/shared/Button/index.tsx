@@ -34,10 +34,10 @@ const ButtonMain = styled.button<ButtonMainProps>`
   align-items: center;
   justify-content: center;
 
-  height: 40px;
+  height: 35px;
   width: ${(props) => props.width && props.width};
   pointer-events: ${(props) => props.disabled && 'none'};
-
+  opacity: ${(props) => (props.disabled ? 0.7 : 1)};
   &:hover {
     transition: 0.2s;
   }

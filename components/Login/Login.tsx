@@ -23,11 +23,10 @@ const LoginBodyText = styled(Body1)`
 `;
 
 const Login = (): JSX.Element => {
-  const { account, activate } = useWeb3React<Web3Provider>();
+  const { activate } = useWeb3React<Web3Provider>();
 
   return (
     <LoginContainer>
-      {account}
       <LoginHeaderText>Welcome to Station</LoginHeaderText>
       <LoginBodyText>
         HERE, YOU’LL BE ABLE TO NAVIGATE AND CONTRIBUTE TO OUR DECENTRALIZED

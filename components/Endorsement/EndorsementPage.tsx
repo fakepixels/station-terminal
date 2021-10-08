@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../shared/Modal';
 import styled from '@emotion/styled';
-import MintPage from './MintPage';
+import MintScreen from './MintScreen';
 import EndorsementScreen from './EndorsementScreen';
 import { endorsementContext } from '../../shared/contexts';
 import { Page } from './helper';
@@ -51,7 +51,7 @@ const EndorsementModal = (props: ownProps): JSX.Element => {
         onBack={onBackFunction()}
       >
         {page === Page.endorse && <EndorsementScreen />}
-        {page === Page.mint && <MintPage />}
+        {page === Page.mint && <MintScreen />}
       </EndorsementModalWrapper>
     </endorsementContext.Provider>
   );

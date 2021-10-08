@@ -14,6 +14,7 @@ interface inputOwnProps {
   disableResize?: boolean;
   width?: string;
   type?: string;
+  margin?: string;
   rightFlatBorder?: boolean;
 }
 
@@ -30,6 +31,7 @@ const InputCaptionContainer = styled.div`
 
 interface inputProps {
   rightFlatBorder?: boolean;
+  margin?: string;
 }
 
 const InputMain = styled.input<inputProps>`
@@ -43,6 +45,7 @@ const InputMain = styled.input<inputProps>`
   box-sizing: border-box;
   border-width: 2px;
   border-style: solid;
+  margin: ${(props) => (props.margin ? props.margin : '0px')};
   border-color: ${(props) => props.theme.colors.gray};
   border-right: ${(props) => props.rightFlatBorder && 'none'};
 
@@ -67,6 +70,7 @@ const Input = (props: inputOwnProps): JSX.Element => {
     disabled,
     width,
     type,
+    margin,
     rightFlatBorder,
   } = props;
 
@@ -84,6 +88,7 @@ const Input = (props: inputOwnProps): JSX.Element => {
         disabled={disabled}
         width={width}
         type={type}
+        margin={margin}
         rightFlatBorder={rightFlatBorder || false}
       />
     </React.Fragment>

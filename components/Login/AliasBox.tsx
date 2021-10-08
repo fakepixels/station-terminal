@@ -5,7 +5,7 @@ import { Body1, Heading1 } from '../../shared/style/theme';
 import Button from '../shared/Button';
 import Input from '../shared/Input/Index';
 import { useContracts } from '../../shared/contexts';
-import { handleError } from '../../utils/contract/endorsement';
+import { handleError } from '../../utils/contract/helper';
 
 const MasterContainer = styled.div`
   width: 400px;

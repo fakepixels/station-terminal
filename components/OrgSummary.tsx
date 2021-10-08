@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useContracts } from '../shared/contexts';
 import { Body1, Heading1 } from '../shared/style/theme';
-import { handleError } from '../utils/contract/endorsement';
+import { handleError } from '../utils/contract/helper';
 import { Divider } from './shared/Divider';
 
 const DAOSummaryWrapper = styled.div`

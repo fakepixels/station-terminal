@@ -5,13 +5,13 @@ import type { NextPage } from 'next';
 import type { ReactElement, ReactNode } from 'react';
 import { ThemeProvider } from '@emotion/react';
 import { ApolloProvider } from '@apollo/client';
-import { client } from '../apollo/client';
 import { Web3ReactProvider } from '@web3-react/core';
 import { globalStyles } from '../shared/styles';
 import { theme } from '../shared/style/theme';
 import { Contracts, contractsContext } from '../shared/contexts';
-import 'react-toastify/dist/ReactToastify.css';
 import { getLibrary } from '../shared/wallet/initializeWallet';
+import { client } from '../utils/apollo/client';
+import 'react-toastify/dist/ReactToastify.css';
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
