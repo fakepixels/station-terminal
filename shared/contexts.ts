@@ -1,7 +1,8 @@
 import { Dispatch, createContext, useContext } from 'react';
+import { Contract } from '@ethersproject/contracts';
 
 export interface Contracts {
-  [key: string]: any;
+  [key: string]: Contract;
 }
 
 interface ContractsContext {

@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useWeb3React } from '@web3-react/core';
+import { Web3Provider } from '@ethersproject/providers';
 import Modal from '../shared/Modal';
 import styled from '@emotion/styled';
 import Button from '../shared/Button';
@@ -6,20 +8,32 @@ import Input from '../shared/Input';
 import { useContracts } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
-import { client } from '../../utils/apollo/client';
-import {
-  PEER_REWARDS_REGISTERED_MEMBERS,
-  ALLOCATIONS_FROM_MEMBER,
-} from '../../utils/apollo/queries';
 import { PeerRewardsRegistration } from '../../utils/apollo/queryTypes';
-import { handleError } from '../../utils/contract/helper';
-import { useWeb3React } from '@web3-react/core';
-import { Web3Provider } from '@ethersproject/providers';
+import {
+  calculateAvailableRewardsToGive,
+  handleError,
+} from '../../utils/contract/helper';
+import {
+  fetchAllocationsFromUserPerEpoch,
+  fetchRegisteredMembers,
+} from '../../utils/apollo/api';
 
 interface ownProps {
   isOpen: boolean;
   onRequestClose?: () => void;
 }
+
+const calculateRewardsToGive = (
+  percents: Record<string, number | null>,
+  availableToGive: number,
+  address: string,
+): string => {
+  const rewards =
+    Math.round(Number(percents[address]) * availableToGive * 100) / 10000;
+  return percents[address]
+    ? `${rewards.toFixed(1)} / ${percents[address]} %`
+    : '';
+};
 
 const GiveRewards = (props: ownProps): JSX.Element => {
   const { isOpen, onRequestClose } = props;
@@ -29,7 +43,10 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   const [currentEpoch, setCurrentEpoch] = useState<number>(0);
   const [selectedEpoch, setSelectedEpoch] = useState<number>(0);
   const [loading, isLoading] = useState<boolean>(true);
-  const [rewards, setRewards] = useState<Record<string, number>>({});
+  const [savedRewards, setSavedRewards] = useState<Record<string, number>>({}); //Separate saved (to the contract) and unsaved inputs to distinguish if user has edited the field
+  const [unsavedRewards, setUnsavedRewards] = useState<Record<string, number>>(
+    {},
+  );
   const [rewardPercents, setRewardPercents] = useState<
     Record<string, number | null>
   >({});
@@ -40,127 +57,100 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
   const [hasCommitted, setHasCommitted] = useState<boolean>(false);
 
-  const onSelectedEpochChange = (epoch: number): void => {
-    epoch = Number(epoch);
-    if (epoch < 1 || epoch > currentEpoch || epoch % 1 > 0) return;
-    setSelectedEpoch(epoch);
-    fetchPeerRewards(epoch);
-    setRewards({});
-    setRewardPercents({});
-  };
-
-  const updatePercents = (newRewards: any): void => {
-    const newRewardPercents: any = {};
-    let totalPoints = 0;
-    for (const k in newRewards) totalPoints += Number(newRewards[k]);
-    for (const key in newRewards) {
-      const percent = Math.round((newRewards[key] / totalPoints) * 10000) / 100;
-      newRewardPercents[key] = percent > 0 ? percent : null;
-    }
-    setRewardPercents(newRewardPercents);
-  };
-
-  const onSingleRewardChange = (key: string, value: number): void => {
-    if (value < 0) return;
-    const newRewards = { ...rewards };
-    newRewards[key] = value;
-    setRewards(newRewards);
-    updatePercents(newRewards);
-  };
-
-  const calculateRewardsToGive = useCallback(
-    (address: string): string => {
-      const rewards =
-        Math.round(
-          Number(rewardPercents[address]) * rewardsAvailableToGive * 100,
-        ) / 10000;
-      return rewardPercents[address]
-        ? `${rewards} / ${rewardPercents[address]} %`
-        : '';
+  const onSelectedEpochChange = useCallback(
+    (epoch: number): void => {
+      epoch = Number(epoch);
+      if (epoch < 1 || epoch > currentEpoch || epoch % 1 > 0) return;
+      setSelectedEpoch(epoch);
+      setSavedRewards({});
+      setUnsavedRewards({});
+      setRewardPercents({});
+      fetchPeerRewards(epoch);
     },
-    [rewardPercents, rewardsAvailableToGive],
+    [currentEpoch],
   );
 
-  const fetchCurrentEpoch = async (): Promise<number> => {
-    const epoch = await contracts.EPC.current();
-    setCurrentEpoch(epoch);
-    setSelectedEpoch(epoch);
-    return epoch;
-  };
+  const updatePercents = useCallback(
+    (newRewards: Record<string, number>): void => {
+      const newRewardPercents: Record<string, number | null> = {};
+      let totalPoints = 0;
+      for (const k in newRewards) totalPoints += Number(newRewards[k]);
+      for (const key in newRewards) {
+        const percent =
+          Math.round((newRewards[key] / totalPoints) * 10000) / 100;
+        newRewardPercents[key] = percent > 0 ? percent : null;
+      }
+      setRewardPercents(newRewardPercents);
+    },
+    [setRewardPercents],
+  );
 
-  const fetchRewardsAvailableToGive = async (
-    epoch: number,
-  ): Promise<number> => {
-    if (!account || !contracts || !contracts.PAY) return 0;
+  const onSingleRewardChange = useCallback(
+    (key: string, value: number): void => {
+      if (value < 0) return;
+      const newRewards = { ...unsavedRewards };
+      newRewards[key] = value;
+      setUnsavedRewards(newRewards);
+      updatePercents(newRewards);
+    },
+    [setUnsavedRewards, updatePercents, unsavedRewards],
+  );
 
-    let pointsRegisteredByMember = await contracts.PAY.pointsRegisteredForEpoch(
-      epoch,
-      account,
-    );
-    let totalPointsRegisteredForEpoch =
-      await contracts.PAY.totalPointsRegisteredForEpoch(epoch);
-    //Possible bug if browsing different epochs and contributor epoch rewards changed.
-    //Fix later by fetching from subgraph instead
-    let epochRewards = await contracts.PAY.CONTRIBUTOR_EPOCH_REWARDS();
-    pointsRegisteredByMember = pointsRegisteredByMember.toNumber();
-    totalPointsRegisteredForEpoch = totalPointsRegisteredForEpoch.toNumber();
-    epochRewards = epochRewards.toNumber();
+  const fetchCurrentEpoch = useCallback(async (): Promise<number | null> => {
+    try {
+      const epoch = await contracts.EPC.current();
+      setCurrentEpoch(epoch);
+      setSelectedEpoch(epoch);
+      return epoch;
+    } catch (err) {
+      handleError(err);
+      return null;
+    }
+  }, [setCurrentEpoch, setSelectedEpoch, contracts]);
 
-    return (
-      Math.round(
-        epochRewards *
-          (pointsRegisteredByMember / totalPointsRegisteredForEpoch) *
-          1000,
-      ) / 1000
-    );
-  };
-
+  // fetch existing peer rewards given epoch from subgraph
   const fetchPeerRewards = async (epoch: number) => {
     try {
       if (!account || !contracts || !contracts.OS) return;
+      const os: string = contracts.OS.address.toLowerCase();
 
-      const os = contracts.OS.address.toLowerCase();
-      const registeredMembers = await client.query({
-        query: PEER_REWARDS_REGISTERED_MEMBERS,
-        variables: {
-          os,
-          epochNumber: epoch,
-        },
-      });
+      // Gets all allocations that the user gave for th epoch
+      const allocations: any = await fetchAllocationsFromUserPerEpoch(
+        os,
+        account,
+        epoch,
+      );
 
-      const allocations = await client.query({
-        query: ALLOCATIONS_FROM_MEMBER,
-        variables: {
-          os,
-          from: `${os}-${account.toLowerCase()}`,
-          epochNumber: epoch,
-        },
-      });
-
-      // TODO: Allocations aren't fetching correctly from subgraph
-
-      const newRewards: any = {};
-      for (const a in allocations.data.allocations) {
-        const allocation = allocations.data.allocations[a];
+      // Saves the allocations in a map so that we can compare with the available members and
+      const newRewards: Record<string, number> = {};
+      allocations.forEach((allocation: any) => {
         newRewards[allocation.to.address] = allocation.points;
-      }
-      setMembers(registeredMembers.data.rewardsRegistrations);
-      setRewards(newRewards);
+      });
+
+      setMembers(await fetchRegisteredMembers(os, epoch)); // Gets all peer reward registered member for the epoch
+      setSavedRewards(newRewards);
+      setUnsavedRewards(newRewards);
       updatePercents(newRewards);
     } catch (err: any) {
       handleError(err);
     }
   };
 
-  const configureAllocation = async (address: string, amount: number) => {
-    try {
-      await contracts.PAY.configureAllocation(address, amount);
-    } catch (err: any) {
-      handleError(err);
-    }
-  };
+  const configureAllocation = useCallback(
+    async (address: string, amount: number) => {
+      try {
+        await contracts.PAY.configureAllocation(address, amount);
+        const newRewards = { ...savedRewards };
+        newRewards[address] = amount;
+        setSavedRewards(newRewards); // Only saving savedRewards because unsavedRewards is already updated during user input
+      } catch (err: any) {
+        handleError(err);
+      }
+    },
+    [contracts, setSavedRewards],
+  );
 
-  const commitAllocation = async () => {
+  const commitAllocation = useCallback(async () => {
     try {
       isLoading(true);
       await contracts.PAY.commitAllocation();
@@ -169,9 +159,9 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     } finally {
       isLoading(false);
     }
-  };
+  }, [isLoading, contracts]);
 
-  const registerForPeerRewards = async () => {
+  const registerForPeerRewards = useCallback(async () => {
     try {
       isLoading(true);
       await contracts.PAY.register();
@@ -180,15 +170,18 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     } finally {
       isLoading(false);
     }
-  };
+  }, [isLoading, contracts]);
 
   useEffect(() => {
     const fetch = async () => {
       try {
         isLoading(true);
         const epoch = await fetchCurrentEpoch();
+        if (!epoch || !account) return;
         await fetchPeerRewards(epoch);
-        setRewardsAvailableToGive(await fetchRewardsAvailableToGive(epoch));
+        setRewardsAvailableToGive(
+          await calculateAvailableRewardsToGive(contracts, account, epoch),
+        );
       } catch (err: any) {
         handleError(err);
       } finally {
@@ -238,6 +231,8 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     fetch();
   }, [selectedEpoch, account, contracts]);
 
+  const isCurrentEpoch = currentEpoch == selectedEpoch;
+
   return (
     <GiveRewardsModalWrapper onRequestClose={onRequestClose} isOpen={isOpen}>
       <RewardHeaderArea>
@@ -249,28 +244,29 @@ const GiveRewards = (props: ownProps): JSX.Element => {
               value={selectedEpoch}
               type="number"
               margin="0px 0px 0px 10px"
+              width="70px"
               onChange={(e: any) => onSelectedEpochChange(e.target.value)}
             />
           </WeekContainer>
         </RewardModalHello>
-        <Body1>
+        <RewardSubtitle>
           Reward those who empower and enable you to be a better contributor
-        </Body1>
+        </RewardSubtitle>
         <RewardModalSubheader>
           <Body1>Rewards to give</Body1>
           <Body1>{rewardsAvailableToGive}</Body1>
         </RewardModalSubheader>
       </RewardHeaderArea>
 
-      {currentEpoch == selectedEpoch && !isRegistered ? (
+      {isCurrentEpoch && !isRegistered && (
         <BottomCTAContainer>
           <Button width="100%" onClick={() => registerForPeerRewards()}>
             REGISTER FOR NEXT WEEK
           </Button>
         </BottomCTAContainer>
-      ) : null}
+      )}
 
-      {isRegistered && currentEpoch == selectedEpoch && (
+      {isRegistered && isCurrentEpoch && (
         <BottomCTAContainer>
           <Button width="100%" onClick={() => commitAllocation()}>
             SAVE ALL
@@ -281,12 +277,18 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         </BottomCTAContainer>
       )}
 
+      {!isRegistered && (
+        <AlertContainer>
+          <Body1>* You need to be registered to participate!</Body1>
+        </AlertContainer>
+      )}
+
       {isRegistered && (
         <>
           <Divider />
           <RewardTableContainer>
             {loading ? (
-              <div>Loading ...</div>
+              <LoadingTextContainer>Loading ...</LoadingTextContainer>
             ) : (
               <RewardTable>
                 <RewardTableRowContainer>
@@ -302,46 +304,62 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                     <Heading4>Points</Heading4>
                   </RewardTableHeaderText>
                 </RewardTableRowContainer>
-                {members.map((registration: PeerRewardsRegistration) => (
-                  <RewardTableRowContainer
-                    key={registration.member.address + selectedEpoch}
-                  >
-                    <td>@{registration.member.alias}</td>
-                    <td>
-                      {calculateRewardsToGive(registration.member.address)}
-                    </td>
-                    <tr>
-                      <RewardTableCell>
-                        <Input
-                          value={rewards[registration.member.address]}
-                          type="number"
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            onSingleRewardChange(
-                              registration.member.address,
-                              Number(e.target.value),
-                            )
-                          }
-                          rightFlatBorder
-                          disabled={
-                            currentEpoch != selectedEpoch || hasCommitted
-                          }
-                        />
-                        <Button
-                          onClick={() =>
-                            configureAllocation(
-                              registration.member.address,
-                              rewards[registration.member.address],
-                            )
-                          }
-                          leftFlatBorder
-                          disabled={currentEpoch != selectedEpoch}
-                        >
-                          Reward
-                        </Button>
-                      </RewardTableCell>
-                    </tr>
-                  </RewardTableRowContainer>
-                ))}
+                {members.map((registration: PeerRewardsRegistration) => {
+                  const member = registration.member;
+                  const unsavedReward = unsavedRewards[member.address];
+                  const savedReward = savedRewards[member.address];
+                  return (
+                    <RewardTableRowContainer
+                      key={member.address + selectedEpoch}
+                    >
+                      <td>
+                        <Body1>@{member.alias}</Body1>
+                      </td>
+                      <td>
+                        <Body1>
+                          {calculateRewardsToGive(
+                            rewardPercents,
+                            rewardsAvailableToGive,
+                            member.address,
+                          )}
+                        </Body1>
+                      </td>
+                      <tr>
+                        <RewardTableCell>
+                          <Input
+                            value={unsavedReward}
+                            type="number"
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) =>
+                              onSingleRewardChange(
+                                member.address,
+                                Number(e.target.value),
+                              )
+                            }
+                            rightFlatBorder
+                            disabled={
+                              currentEpoch != selectedEpoch || hasCommitted
+                            }
+                            width="70px"
+                          />
+                          <Button
+                            onClick={() =>
+                              configureAllocation(member.address, unsavedReward)
+                            }
+                            leftFlatBorder
+                            disabled={
+                              currentEpoch != selectedEpoch ||
+                              savedReward == unsavedReward
+                            }
+                          >
+                            Reward
+                          </Button>
+                        </RewardTableCell>
+                      </tr>
+                    </RewardTableRowContainer>
+                  );
+                })}
               </RewardTable>
             )}
           </RewardTableContainer>
@@ -350,6 +368,8 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     </GiveRewardsModalWrapper>
   );
 };
+
+export default GiveRewards;
 
 const GiveRewardsModalWrapper = styled(Modal)`
   position: absolute;
@@ -434,4 +454,21 @@ const DisclaimerText = styled(Body1)`
   margin-top: 6px;
 `;
 
-export default GiveRewards;
+const AlertContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const LoadingTextContainer = styled(Body1)`
+  color: ${(props) => props.theme.colors.gray};
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 20px;
+  justify-content: center;
+`;
+
+const RewardSubtitle = styled(Body1)`
+  color: ${(props) => props.theme.colors.gray};
+`;

@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { Web3Provider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
-import { useContracts, Contracts } from '../../shared/contexts';
+import { Contract } from '@ethersproject/contracts';
+import { useContracts } from '../../shared/contexts';
 import ContributorsList from '../../components/ContributorsList';
 import OrgSummary from '../../components/OrgSummary';
 import Footer from '../../components/Footer';
@@ -138,8 +139,7 @@ const Home = (): JSX.Element => {
   // create contract for each module and set the contracts to state
   const getModules = async () => {
     if (!osContractAddress || !library) return;
-
-    const newContracts: any = {};
+    const newContracts: Record<string, Contract> = {};
 
     const osContract = new ethers.Contract(
       osContractAddress,
@@ -162,12 +162,7 @@ const Home = (): JSX.Element => {
         const newContract = new ethers.Contract(addresses[i], elem.abi, signer);
         newContracts[elem.name] = newContract;
       });
-      setContracts(
-        (prevState: Contracts): Contracts => ({
-          ...prevState,
-          ...newContracts,
-        }),
-      );
+      setContracts(newContracts);
     } catch (err) {
       handleError(err);
     }
@@ -185,17 +180,15 @@ const Home = (): JSX.Element => {
   useEffect(() => {
     const onMount = async () => {
       if (!account && tried) {
-        // logged out state
-        setStep(1);
+        setStep(1); // logged out state
       } else if (account && tried) {
         // Logged in state. check if alias is present
         if (contracts && contracts.MBR && account) {
           const res = await contracts.MBR.getAliasForMember(account);
-
           if (res === 0) {
-            setStep(2);
+            setStep(2); //alias isn't present
           } else {
-            setStep(3);
+            setStep(3); // alias is present
           }
         }
       }

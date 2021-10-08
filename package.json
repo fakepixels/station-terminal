@@ -30,6 +30,8 @@
     "@apollo/client": "^3.4.13",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
+    "@ethersproject/bignumber": "^5.4.2",
+    "@ethersproject/contracts": "^5.4.1",
     "@types/lodash": "^4.14.173",
     "@types/react-modal": "^3.12.1",
     "@types/react-select": "^4.0.17",

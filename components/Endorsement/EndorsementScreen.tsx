@@ -28,14 +28,21 @@ const EndorsementScreen = (): JSX.Element => {
     number | null
   >();
   const [loading, isLoading] = useState<boolean>(true);
-  const [endorsements, setEndorsements] = useState<Record<string, number>>({});
+  //Separate saved (to the contract) and unsaved inputs to distinguish if user has edited the field
+  const [savedEndorsements, setSavedEndorsements] = useState<
+    Record<string, number>
+  >({});
+  const [unsavedEndorsements, setUnsavedEndorsements] = useState<
+    Record<string, number>
+  >({});
   const [members, setMembers] = useState<Member[]>([]);
   const endorsementState = useEndorsement();
 
   const onSingleEndorsementChange = (key: string, value: number): void => {
-    const newEndorsements = { ...endorsements };
+    if (value < 0) return;
+    const newEndorsements = { ...savedEndorsements };
     newEndorsements[key] = value;
-    setEndorsements(newEndorsements);
+    setUnsavedEndorsements(newEndorsements);
   };
 
   const fetchEndorsements = async () => {
@@ -48,7 +55,7 @@ const EndorsementScreen = (): JSX.Element => {
         variables: { os },
       });
 
-      const endorsements = await client.query({
+      const fetchedEndorsements = await client.query({
         query: ENDORSEMENTS_FROM_MEMBER,
         variables: {
           os,
@@ -57,12 +64,13 @@ const EndorsementScreen = (): JSX.Element => {
       });
 
       const newEndorsements: any = {};
-      for (const a in endorsements.data.endorsements) {
-        const endorsement = endorsements.data.endorsements[a];
+      for (const a in fetchedEndorsements.data.endorsements) {
+        const endorsement = fetchedEndorsements.data.endorsements[a];
         newEndorsements[endorsement.to.address] = endorsement.amount * 1000;
       }
       setMembers(formatMembers(data.members));
-      setEndorsements(newEndorsements);
+      setUnsavedEndorsements(newEndorsements);
+      setSavedEndorsements(newEndorsements);
     } catch (err: any) {
       handleError(err);
     }
@@ -71,16 +79,35 @@ const EndorsementScreen = (): JSX.Element => {
   const fetchAvailableEndorsements = useCallback(async () => {
     try {
       setAvailableEndorsements(
-        await getAvailableEndorsements(contracts.MBR, account),
+        await getAvailableEndorsements(contracts.MBR, account || ''),
       );
     } catch (err: any) {
-      // handleError(err);
+      handleError(err);
     }
   }, [contracts, account]);
 
   const endorse = async (amount: number, address: string) => {
     try {
-      await contracts.MBR.endorseMember(address, amount);
+      const newEndorsement =
+        Number(unsavedEndorsements[address]) -
+        Number(savedEndorsements[address] ? savedEndorsements[address] : 0);
+
+      if (newEndorsement > 0) {
+        await contracts.MBR.endorseMember(address, Math.abs(newEndorsement));
+      } else if (newEndorsement < 0) {
+        await contracts.MBR.withdrawEndorsementFrom(
+          address,
+          Math.abs(newEndorsement),
+        );
+      }
+
+      const newEndorsements = { ...savedEndorsements };
+      newEndorsements[address] = amount;
+      //Only saving savedEndorsements because unsavedEndorsements is already updated during user input
+      setSavedEndorsements(newEndorsements);
+      setAvailableEndorsements(
+        (availableEndorsement ? availableEndorsement : 0) + newEndorsement * -1,
+      );
     } catch (err) {
       handleError(err);
     }
@@ -153,7 +180,7 @@ const EndorsementScreen = (): JSX.Element => {
                 <tr>
                   <EndorsementTableRowCell>
                     <Input
-                      value={endorsements[member.address]}
+                      value={unsavedEndorsements[member.address]}
                       type="number"
                       onChange={(e: any) =>
                         onSingleEndorsementChange(
@@ -165,9 +192,16 @@ const EndorsementScreen = (): JSX.Element => {
                     />
                     <Button
                       onClick={() =>
-                        endorse(endorsements[member.address], member.address)
+                        endorse(
+                          unsavedEndorsements[member.address],
+                          member.address,
+                        )
                       }
                       leftFlatBorder
+                      disabled={
+                        unsavedEndorsements[member.address] ==
+                        savedEndorsements[member.address]
+                      }
                     >
                       Endorse
                     </Button>

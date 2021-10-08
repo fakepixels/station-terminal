@@ -10,7 +10,10 @@ import { useContracts } from '../../shared/contexts';
 import { Divider } from '../shared/Divider';
 import { Body1, Heading1, Heading4 } from '../../shared/style/theme';
 import { client } from '../../utils/apollo/client';
-import { PEER_REWARDS_CLAIMABLE } from '../../utils/apollo/queries';
+import {
+  PEER_REWARDS_FOR_EPOCH,
+  UNCLAIMED_PEER_REWARDS,
+} from '../../utils/apollo/queries';
 import { Allocation } from '../../utils/apollo/queryTypes';
 import { handleError } from '../../utils/contract/helper';
 
@@ -24,24 +27,30 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
   const { contracts } = useContracts();
   const { account } = useWeb3React<Web3Provider>();
 
+  const [loading, isLoading] = useState<boolean>(true);
   const [currentEpoch, setCurrentEpoch] = useState<number>(0);
   const [selectedEpoch, setSelectedEpoch] = useState<number>(0);
-  const [loading, isLoading] = useState<boolean>(true);
-  const [members, setMembers] = useState<Allocation[]>([]);
+  const [unclaimedRewards, setUnclaimedRewards] = useState<number>(0);
+  const [allocationsForEpoch, setAllocationsForEpoch] = useState<Allocation[]>(
+    [],
+  );
 
   const onSelectedEpochChange = (epoch: number): void => {
     epoch = Number(epoch);
     if (epoch < 1 || epoch > currentEpoch || epoch % 1 > 0) return;
     setSelectedEpoch(epoch);
-    fetchClaimableRewards(epoch);
+    fetchClaimableRewardsForEpoch(epoch);
   };
 
+  //For aggregating total rewards in allocation list for an epoch
   const calculateTotalRewardsRecieved = (): number => {
     let total = 0;
-    for (const key in members) total += Number(members[key].rewards);
+    for (const key in allocationsForEpoch)
+      total += Number(allocationsForEpoch[key].rewards);
     return total;
   };
 
+  //For calculating percentage of reward of an allocation for the list for an epoch
   const calculateRewardPercentage = (reward: number): number => {
     const total = calculateTotalRewardsRecieved();
     return Math.round((reward / total) * 10000) / 100;
@@ -54,13 +63,14 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
     return epoch;
   };
 
-  const fetchClaimableRewards = async (epoch: number) => {
+  //For saving the list of allocations for an epoch
+  const fetchClaimableRewardsForEpoch = async (epoch: number) => {
     try {
       if (!account || !contracts || !contracts.OS) return;
 
       const os = contracts.OS.address.toLowerCase();
       const rewardsFromMembers = await client.query({
-        query: PEER_REWARDS_CLAIMABLE,
+        query: PEER_REWARDS_FOR_EPOCH,
         variables: {
           os,
           to: `${os}-${account.toLowerCase()}`,
@@ -68,7 +78,40 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
         },
       });
 
-      setMembers(rewardsFromMembers.data.allocations);
+      setAllocationsForEpoch(rewardsFromMembers.data.allocations);
+    } catch (err: any) {
+      handleError(err);
+    }
+  };
+
+  //For saving the aggregation of claimable rewards
+  const fetchUnclaimedRewards = async () => {
+    try {
+      if (!account || !contracts || !contracts.OS) return;
+
+      //Get last epoch the user claimd the rewards
+      const lastEpochClaimed = await contracts.PAY.lastEpochClaimed(account);
+
+      //Fetch unclaimed rewards since last epoch claimed (greater than "_gt" query on the graph)
+      const os = contracts.OS.address.toLowerCase();
+      const unclaimedRewards = await client.query({
+        query: UNCLAIMED_PEER_REWARDS,
+        variables: {
+          os,
+          to: `${os}-${account.toLowerCase()}`,
+          epochNumber: lastEpochClaimed,
+        },
+      });
+
+      //Aggregate all the unclaimed rewards given
+      const total = unclaimedRewards.data.allocations.reduce(
+        (prev: number, cur: any) => {
+          return prev + Number(cur.rewards);
+        },
+        0,
+      );
+
+      setUnclaimedRewards(total);
     } catch (err: any) {
       handleError(err);
     }
@@ -78,6 +121,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
     try {
       isLoading(true);
       await contracts.PAY.claimRewards();
+      setUnclaimedRewards(0);
     } catch (err: any) {
       isLoading(false);
       handleError(err);
@@ -91,7 +135,8 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
       try {
         isLoading(true);
         const epoch = await fetchCurrentEpoch();
-        await fetchClaimableRewards(epoch);
+        await fetchClaimableRewardsForEpoch(epoch);
+        await fetchUnclaimedRewards();
       } catch (err: any) {
         console.log(err);
       } finally {
@@ -120,7 +165,11 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
           </WeekContainer>
         </RewardModalHello>
         <RewardModalSubheader>
-          <Body1>Rewards received</Body1>
+          <Body1>Rewards unclaimed</Body1>
+          <Body1>{unclaimedRewards}</Body1>
+        </RewardModalSubheader>
+        <RewardModalSubheader>
+          <Body1>Rewards received in week {selectedEpoch}</Body1>
           <Body1>{calculateTotalRewardsRecieved()}</Body1>
         </RewardModalSubheader>
       </RewardHeaderArea>
@@ -128,7 +177,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
         <Button
           width="100%"
           onClick={() => claimRewards()}
-          disabled={currentEpoch == selectedEpoch}
+          disabled={unclaimedRewards <= 0}
         >
           CLAIM
         </Button>
@@ -148,7 +197,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
                 <Heading4>Amount received ($RAIL / %)</Heading4>
               </RewardTableHeaderText>
             </RewardTableRowContainer>
-            {members.map((allocation: Allocation) => (
+            {allocationsForEpoch.map((allocation: Allocation) => (
               <RewardTableRowContainer
                 key={allocation.from.address + selectedEpoch}
               >
@@ -213,6 +262,7 @@ const RewardModalSubheader = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  margin-top: 10px;
 `;
 
 const RewardTableContainer = styled.div`
