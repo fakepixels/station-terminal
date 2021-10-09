@@ -33,6 +33,7 @@ const ControlWrapper = styled.div`
   flex-direction: row;
   align-items: center;
   height: 100%;
+  width: 270px;
 `;
 
 const DropdownWrapper = styled.div`
@@ -64,6 +65,15 @@ const DropdownContainer = styled.div`
   border-right: none;
   right: 0;
   background-color: ${(props) => props.theme.colors.white};
+  width: 270px;
+  box-sizing: border-box;
+`;
+
+const DropdownDisconnectInnerContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
 `;
 
 const trimmedAddress = (address: string): string => {
@@ -117,14 +127,16 @@ const NavBar = (): JSX.Element => {
 
           {isDropdownOpen && active && (
             <DropdownContainer>
-              <DisconnectText
-                onClick={() => {
-                  deactivate();
-                  setIsDropdownOen(false);
-                }}
-              >
-                Disconnect
-              </DisconnectText>
+              <DropdownDisconnectInnerContainer>
+                <DisconnectText
+                  onClick={() => {
+                    deactivate();
+                    setIsDropdownOen(false);
+                  }}
+                >
+                  DISCONNECT
+                </DisconnectText>
+              </DropdownDisconnectInnerContainer>
             </DropdownContainer>
           )}
         </ControlWrapper>

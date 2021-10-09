@@ -37,6 +37,7 @@ const DaoSummaryStatRow = styled.div`
 
 const DaoSummaryLabel = styled(Body1)`
   color: ${(props) => props.theme.colors.white};
+  margin: 4px;
 `;
 
 const DaoSummaryValue = styled(Body1)`
@@ -58,6 +59,7 @@ const DAOSummaryText = styled(Body1)`
 const DocsLinkWrapper = styled.a`
   display: flex;
   flex-direction: row;
+  text-decoration: none;
 `;
 
 const DocsLinkArrowIcon = styled.img`
@@ -142,7 +144,7 @@ const OrgSummary = (): JSX.Element => {
         </DaoSummaryStatRow>
 
         <DaoSummaryStatRow>
-          <DaoSummaryLabel>Contributor Budget</DaoSummaryLabel>
+          <DaoSummaryLabel>Contributor Fund</DaoSummaryLabel>
           <DaoSummaryValue>
             {budget}
             <DaoSummaryToken>{'$' + tokenSymbol}</DaoSummaryToken>
@@ -158,7 +160,7 @@ const OrgSummary = (): JSX.Element => {
           peer-to-peer coordination mechanisms that align incentives across
           organizational stakeholders and optimize for fairness and meritocracy.
         </DAOSummaryText>
-        <DocsLink linkTitle={'Contributor Directory'} url={'/'} />
+        <DocsLink linkTitle={'Default OS'} url={'https://default-os.xyz/'} />
         <DocsLink linkTitle={'Docs'} url={'/'} />
         <DocsLink linkTitle={'Discord'} url={'/'} />
         <DocsLink linkTitle={'Twitter'} url={'/'} />

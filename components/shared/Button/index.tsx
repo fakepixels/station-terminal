@@ -17,7 +17,7 @@ const ButtonMain = styled.button<ButtonMainProps>`
   outline: none;
   border: 1px solid
     ${(props) =>
-      props.theme.colors.secondary
+      props.secondary || props.leftFlatBorder
         ? props.theme.colors.primary
         : props.theme.colors.black};
   border-radius: ${(props) => (props.leftFlatBorder ? '0px' : '100px')} 100px

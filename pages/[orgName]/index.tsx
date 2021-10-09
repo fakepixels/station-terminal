@@ -20,6 +20,8 @@ import { useEagerConnect } from '../../shared/wallet/hooks';
 import Login from '../../components/Login/Login';
 import Alias from '../../components/Login/AliasBox';
 import { handleError } from '../../utils/contract/helper';
+import RegistrationBox from '../../components/RegistrationBox/RegistrationBox';
+import { FadeIn } from '../../shared/style/animation';
 
 declare const window: any;
 
@@ -89,6 +91,22 @@ const ContentWrapper = styled.div`
   }
 `;
 
+const LoadingTextWrapper = styled.div`
+  font-size: 46px;
+  color: ${(props) => props.theme.colors.black};
+  font-style: italic;
+  display: inline-block;
+  margin-top: 100px;
+  font-family: 'VT323';
+`;
+
+const LoadingTextMasterContainer = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`;
+
 const getSigner = () => {
   const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
   return provider.getSigner();
@@ -107,6 +125,7 @@ const Home = (): JSX.Element => {
   const { setContracts, contracts } = useContracts();
   const { account, library } = useWeb3React<Web3Provider>();
   const [step, setStep] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   let { orgName } = router.query;
 
@@ -118,6 +137,7 @@ const Home = (): JSX.Element => {
   // get address of OS
   const getOS = async () => {
     if (!orgName || !library) return;
+    setIsLoading(true);
     const defaultOSFactoryContractAddress = process.env
       .NEXT_PUBLIC_CONTRACT_DEFAULT_OS_FACTORY_ADDRESS as string;
     const osFactoryContract = new ethers.Contract(
@@ -134,11 +154,13 @@ const Home = (): JSX.Element => {
     } catch (err) {
       handleError(err);
     }
+    setIsLoading(false);
   };
 
   // create contract for each module and set the contracts to state
   const getModules = async () => {
     if (!osContractAddress || !library) return;
+    setIsLoading(true);
     const newContracts: Record<string, Contract> = {};
 
     const osContract = new ethers.Contract(
@@ -166,6 +188,7 @@ const Home = (): JSX.Element => {
     } catch (err) {
       handleError(err);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -179,6 +202,7 @@ const Home = (): JSX.Element => {
   // determine the state of user
   useEffect(() => {
     const onMount = async () => {
+      setIsLoading(true);
       if (!account && tried) {
         setStep(1); // logged out state
       } else if (account && tried) {
@@ -192,6 +216,7 @@ const Home = (): JSX.Element => {
           }
         }
       }
+      setIsLoading(false);
     };
 
     onMount();
@@ -199,18 +224,29 @@ const Home = (): JSX.Element => {
 
   return (
     <>
-      {step === 1 && <Login />}
-      {step === 2 && <Alias finishAlias={() => setStep(3)} />}
-      {step === 3 && (
+      {isLoading ? (
+        <LoadingTextMasterContainer>
+          <LoadingTextWrapper>LOADING ...</LoadingTextWrapper>
+        </LoadingTextMasterContainer>
+      ) : (
         <>
-          <PageWrapper>
-            <Title daoName={orgName ? orgName : ''} />
-            <ContentWrapper>
-              <ContributorsList />
-              <OrgSummary />
-            </ContentWrapper>
-          </PageWrapper>
-          <Footer />
+          {step === 1 && <Login />}
+          {step === 2 && <Alias finishAlias={() => setStep(3)} />}
+          {step === 3 && (
+            <>
+              <FadeIn>
+                <PageWrapper>
+                  <Title daoName={orgName ? orgName : ''} />
+                  <RegistrationBox />
+                  <ContentWrapper>
+                    <ContributorsList />
+                    <OrgSummary />
+                  </ContentWrapper>
+                </PageWrapper>
+                <Footer />
+              </FadeIn>
+            </>
+          )}
         </>
       )}
     </>

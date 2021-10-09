@@ -161,17 +161,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     }
   }, [isLoading, contracts]);
 
-  const registerForPeerRewards = useCallback(async () => {
-    try {
-      isLoading(true);
-      await contracts.PAY.register();
-    } catch (err: any) {
-      handleError(err);
-    } finally {
-      isLoading(false);
-    }
-  }, [isLoading, contracts]);
-
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -196,21 +185,18 @@ const GiveRewards = (props: ownProps): JSX.Element => {
 
   // set registration date
   useEffect(() => {
-    const fetch = async () => {
+    const fetchEligibility = async () => {
       if (!account || !contracts || !contracts.PAY) return;
       try {
-        const res: boolean = await contracts.PAY.eligibleForRewards(
-          selectedEpoch,
-          account,
+        setIsRegistered(
+          await contracts.PAY.eligibleForRewards(selectedEpoch, account),
         );
-
-        setIsRegistered(res);
       } catch (err) {
         handleError(err);
       }
     };
 
-    fetch();
+    fetchEligibility();
   }, [selectedEpoch, account, contracts]);
 
   // check whether user has committed yet
@@ -218,11 +204,9 @@ const GiveRewards = (props: ownProps): JSX.Element => {
     const fetch = async () => {
       if (!account || !contracts || !contracts.PAY) return;
       try {
-        const res: boolean = await contracts.PAY.participationHistory(
-          selectedEpoch,
-          account,
+        setHasCommitted(
+          await contracts.PAY.participationHistory(selectedEpoch, account),
         );
-        setHasCommitted(res);
       } catch (err) {
         handleError(err);
       }
@@ -257,14 +241,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
           <Body1>{rewardsAvailableToGive}</Body1>
         </RewardModalSubheader>
       </RewardHeaderArea>
-
-      {isCurrentEpoch && !isRegistered && (
-        <BottomCTAContainer>
-          <Button width="100%" onClick={() => registerForPeerRewards()}>
-            REGISTER FOR NEXT WEEK
-          </Button>
-        </BottomCTAContainer>
-      )}
 
       {isRegistered && isCurrentEpoch && (
         <BottomCTAContainer>
@@ -315,15 +291,6 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                       <td>
                         <Body1>@{member.alias}</Body1>
                       </td>
-                      <td>
-                        <Body1>
-                          {calculateRewardsToGive(
-                            rewardPercents,
-                            rewardsAvailableToGive,
-                            member.address,
-                          )}
-                        </Body1>
-                      </td>
                       <tr>
                         <RewardTableCell>
                           <Input
@@ -357,6 +324,15 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                           </Button>
                         </RewardTableCell>
                       </tr>
+                      <td>
+                        <Body1>
+                          {calculateRewardsToGive(
+                            rewardPercents,
+                            rewardsAvailableToGive,
+                            member.address,
+                          )}
+                        </Body1>
+                      </td>
                     </RewardTableRowContainer>
                   );
                 })}

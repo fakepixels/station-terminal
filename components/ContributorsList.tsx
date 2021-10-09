@@ -13,6 +13,7 @@ const ContributorsListWrapper = styled.div`
   max-height: 350px;
   max-width: 408px;
   overflow: scroll;
+  border: 1px solid ${(props) => props.theme.colors.black};
 `;
 
 const ContributorListBodyWrapper = styled.div`
