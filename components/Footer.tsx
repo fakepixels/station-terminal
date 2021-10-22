@@ -11,7 +11,7 @@ import { handleError } from '../utils/contract/helper';
 
 const FooterWrapper = styled.div`
   width: 100%;
-  height: 160px;
+  height: 140px;
   background-image: url('/StationFloor.png');
   position: fixed;
   display: flex;

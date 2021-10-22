@@ -78,7 +78,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
         },
       });
 
-      setAllocationsForEpoch(rewardsFromMembers.data.allocations);
+      setAllocationsForEpoch(rewardsFromMembers.data.committedAllocations);
     } catch (err: any) {
       handleError(err);
     }
@@ -104,7 +104,7 @@ const ClaimRewards = (props: ownProps): JSX.Element => {
       });
 
       //Aggregate all the unclaimed rewards given
-      const total = unclaimedRewards.data.allocations.reduce(
+      const total = unclaimedRewards.data.committedAllocations.reduce(
         (prev: number, cur: any) => {
           return prev + Number(cur.rewards);
         },

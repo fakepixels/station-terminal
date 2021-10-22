@@ -1,6 +1,7 @@
 import {
   PEER_REWARDS_REGISTERED_MEMBERS,
   ALLOCATIONS_FROM_MEMBER,
+  COMMITTED_ALLOCATIONS_FROM_MEMBER,
 } from './queries';
 import { client } from './client';
 
@@ -24,6 +25,26 @@ export const fetchRegisteredMembers = async (
   }
 };
 
+// fetch current allocations
+export const fetchCurrentAllocationsFromUser = async (
+  os: string,
+  account: string,
+): Promise<Record<string, number>[]> => {
+  try {
+    const allocations = await client.query({
+      query: ALLOCATIONS_FROM_MEMBER,
+      variables: {
+        os,
+        from: `${os}-${account.toLowerCase()}`,
+      },
+    });
+
+    return allocations.data.allocations;
+  } catch (err: any) {
+    throw new Error(err.message);
+  }
+};
+
 // fetch allocations from a user per epoch
 export const fetchAllocationsFromUserPerEpoch = async (
   os: string,
@@ -32,7 +53,7 @@ export const fetchAllocationsFromUserPerEpoch = async (
 ): Promise<Record<string, number>[]> => {
   try {
     const allocations = await client.query({
-      query: ALLOCATIONS_FROM_MEMBER,
+      query: COMMITTED_ALLOCATIONS_FROM_MEMBER,
       variables: {
         os,
         from: `${os}-${account.toLowerCase()}`,
@@ -40,7 +61,7 @@ export const fetchAllocationsFromUserPerEpoch = async (
       },
     });
 
-    return allocations.data.allocations;
+    return allocations.data.committedAllocations;
   } catch (err: any) {
     throw new Error(err.message);
   }

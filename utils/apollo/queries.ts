@@ -47,8 +47,27 @@ export const ENDORSEMENTS_FROM_MEMBER = gql`
 // Allocation points the user gave to other members
 // May have to combine with PEER_REWARDS_REGISTERED_MEMBERS for to meet UI requirements
 export const ALLOCATIONS_FROM_MEMBER = gql`
-  query allocationsFromMember($os: String, $epochNumber: Int, $from: String) {
-    allocations(where: { os: $os, from: $from, epochNumber: $epochNumber }) {
+  query allocationsFromMember($os: String, $from: String) {
+    allocations(where: { os: $os, from: $from }) {
+      id
+      points
+      to {
+        address
+        alias
+      }
+    }
+  }
+`;
+
+export const COMMITTED_ALLOCATIONS_FROM_MEMBER = gql`
+  query committedaAllocationsFromMember(
+    $os: String
+    $epochNumber: Int
+    $from: String
+  ) {
+    committedAllocations(
+      where: { os: $os, from: $from, epochNumber: $epochNumber }
+    ) {
       id
       points
       to {
@@ -76,7 +95,7 @@ export const PEER_REWARDS_REGISTERED_MEMBERS = gql`
 // List of rewards that was given to the users. Can be aggregated to get the total rewards claimable
 export const PEER_REWARDS_FOR_EPOCH = gql`
   query peerRewardsClaimable($os: String, $to: String, $epochNumber: Int) {
-    allocations(
+    committedAllocations(
       where: {
         os: $os
         # $member: osAddress-memberAddress
@@ -97,7 +116,7 @@ export const PEER_REWARDS_FOR_EPOCH = gql`
 
 export const UNCLAIMED_PEER_REWARDS = gql`
   query peerRewardsClaimable($os: String, $to: String, $epochNumber: Int) {
-    allocations(
+    committedAllocations(
       where: {
         os: $os
         # $member: osAddress-memberAddress

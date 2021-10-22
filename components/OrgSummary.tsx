@@ -7,8 +7,8 @@ import { Divider } from './shared/Divider';
 
 const DAOSummaryWrapper = styled.div`
   background-color: #090909;
-  margin: 50px 10px 0px 0px;
   width: 355px;
+  max-height: 370px;
 `;
 
 const DaoSummaryContributionsWrapper = styled.div``;

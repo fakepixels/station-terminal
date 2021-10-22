@@ -15,6 +15,7 @@ import {
 } from '../../utils/contract/helper';
 import {
   fetchAllocationsFromUserPerEpoch,
+  fetchCurrentAllocationsFromUser,
   fetchRegisteredMembers,
 } from '../../utils/apollo/api';
 
@@ -32,7 +33,7 @@ const calculateRewardsToGive = (
     Math.round(Number(percents[address]) * availableToGive * 100) / 10000;
   return percents[address]
     ? `${rewards.toFixed(1)} / ${percents[address]} %`
-    : '';
+    : '0 / 0 %';
 };
 
 const GiveRewards = (props: ownProps): JSX.Element => {
@@ -65,7 +66,11 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       setSavedRewards({});
       setUnsavedRewards({});
       setRewardPercents({});
-      fetchPeerRewards(epoch);
+      if (currentEpoch == epoch) {
+        fetchCurrentPeerRewards(epoch);
+      } else {
+        fetchPastPeerRewards(epoch);
+      }
     },
     [currentEpoch],
   );
@@ -109,17 +114,39 @@ const GiveRewards = (props: ownProps): JSX.Element => {
   }, [setCurrentEpoch, setSelectedEpoch, contracts]);
 
   // fetch existing peer rewards given epoch from subgraph
-  const fetchPeerRewards = async (epoch: number) => {
+  const fetchPastPeerRewards = async (epoch: number) => {
     try {
       if (!account || !contracts || !contracts.OS) return;
       const os: string = contracts.OS.address.toLowerCase();
+      let allocations: any = [];
 
       // Gets all allocations that the user gave for th epoch
-      const allocations: any = await fetchAllocationsFromUserPerEpoch(
-        os,
-        account,
-        epoch,
-      );
+      allocations = await fetchAllocationsFromUserPerEpoch(os, account, epoch);
+
+      // Saves the allocations in a map so that we can compare with the available members and
+      const newRewards: Record<string, number> = {};
+      allocations.forEach((allocation: any) => {
+        newRewards[allocation.to.address] = allocation.points;
+      });
+
+      setMembers(await fetchRegisteredMembers(os, epoch)); // Gets all peer reward registered member for the epoch
+      setSavedRewards(newRewards);
+      setUnsavedRewards(newRewards);
+      updatePercents(newRewards);
+    } catch (err: any) {
+      handleError(err);
+    }
+  };
+
+  // fetch existing peer rewards given epoch from subgraph
+  const fetchCurrentPeerRewards = async (epoch: number) => {
+    try {
+      if (!account || !contracts || !contracts.OS) return;
+      const os: string = contracts.OS.address.toLowerCase();
+      let allocations: any = [];
+
+      // Gets all allocations that the user gave for th epoch
+      allocations = await fetchCurrentAllocationsFromUser(os, account);
 
       // Saves the allocations in a map so that we can compare with the available members and
       const newRewards: Record<string, number> = {};
@@ -147,7 +174,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         handleError(err);
       }
     },
-    [contracts, setSavedRewards],
+    [contracts, savedRewards, setSavedRewards],
   );
 
   const commitAllocation = useCallback(async () => {
@@ -167,7 +194,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
         isLoading(true);
         const epoch = await fetchCurrentEpoch();
         if (!epoch || !account) return;
-        await fetchPeerRewards(epoch);
+        await fetchCurrentPeerRewards(epoch);
         setRewardsAvailableToGive(
           await calculateAvailableRewardsToGive(contracts, account, epoch),
         );
@@ -245,7 +272,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
       {isRegistered && isCurrentEpoch && (
         <BottomCTAContainer>
           <Button width="100%" onClick={() => commitAllocation()}>
-            SAVE ALL
+            COMMIT REWARDS
           </Button>
           <DisclaimerText>
             * Once you save, you cannot allocate this epoch
@@ -273,7 +300,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                   </RewardTableHeaderText>
 
                   <RewardTableHeaderText>
-                    <Heading4>Percent to Reward</Heading4>
+                    <Heading4>Points to Reward</Heading4>
                   </RewardTableHeaderText>
 
                   <RewardTableHeaderText>
@@ -284,6 +311,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                   const member = registration.member;
                   const unsavedReward = unsavedRewards[member.address];
                   const savedReward = savedRewards[member.address];
+
                   return (
                     <RewardTableRowContainer
                       key={member.address + selectedEpoch}
@@ -320,7 +348,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                               savedReward == unsavedReward
                             }
                           >
-                            Reward
+                            Update
                           </Button>
                         </RewardTableCell>
                       </tr>

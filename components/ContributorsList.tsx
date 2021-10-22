@@ -10,7 +10,7 @@ import { Body1, Heading1 } from '../shared/style/theme';
 
 const ContributorsListWrapper = styled.div`
   background-color: #feecde;
-  max-height: 350px;
+  max-height: 370px;
   max-width: 408px;
   overflow: scroll;
   border: 1px solid ${(props) => props.theme.colors.black};

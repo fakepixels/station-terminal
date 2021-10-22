@@ -40,7 +40,7 @@ const TitleWrapper = styled.div`
   @media (max-height: 830px) {
     min-width: 200px;
     height: 61px;
-    margin: 30px 0px;
+    margin: 25px 0px;
   }
 `;
 
@@ -81,9 +81,7 @@ const Title = (props: titleProps): JSX.Element => {
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 20px;
-  justify-content: space-around;
-  width: 100%;
+  gap: 150px;
   @media (max-width: 760px) {
     flex-direction: column-reverse;
     align-items: center;

@@ -40,7 +40,7 @@ const EndorsementScreen = (): JSX.Element => {
 
   const onSingleEndorsementChange = (key: string, value: number): void => {
     if (value < 0) return;
-    const newEndorsements = { ...savedEndorsements };
+    const newEndorsements = { ...unsavedEndorsements };
     newEndorsements[key] = value;
     setUnsavedEndorsements(newEndorsements);
   };
@@ -173,42 +173,40 @@ const EndorsementScreen = (): JSX.Element => {
                 <Heading4>Amount to Endorse</Heading4>
               </EndorsementTableHeaderText>
             </EndorsementTableRowContainer>
-            {members.map((member: Member) => (
-              <EndorsementTableRowContainer key={member.address}>
-                <td>@{member.alias}</td>
-                <td>{member.endorsementsReceived}</td>
-                <tr>
-                  <EndorsementTableRowCell>
-                    <Input
-                      value={unsavedEndorsements[member.address]}
-                      type="number"
-                      onChange={(e: any) =>
-                        onSingleEndorsementChange(
-                          member.address,
-                          e.target.value,
-                        )
-                      }
-                      rightFlatBorder
-                    />
-                    <Button
-                      onClick={() =>
-                        endorse(
-                          unsavedEndorsements[member.address],
-                          member.address,
-                        )
-                      }
-                      leftFlatBorder
-                      disabled={
-                        unsavedEndorsements[member.address] ==
-                        savedEndorsements[member.address]
-                      }
-                    >
-                      Endorse
-                    </Button>
-                  </EndorsementTableRowCell>
-                </tr>
-              </EndorsementTableRowContainer>
-            ))}
+            {members.map((member: Member) => {
+              const unsavedEndorsement = unsavedEndorsements[member.address];
+              const savedEndorsement = savedEndorsements[member.address];
+              return (
+                <EndorsementTableRowContainer key={member.address}>
+                  <td>@{member.alias}</td>
+                  <td>{member.endorsementsReceived}</td>
+                  <tr>
+                    <EndorsementTableRowCell>
+                      <Input
+                        value={unsavedEndorsement}
+                        type="number"
+                        onChange={(e: any) =>
+                          onSingleEndorsementChange(
+                            member.address,
+                            e.target.value,
+                          )
+                        }
+                        rightFlatBorder
+                      />
+                      <Button
+                        onClick={() =>
+                          endorse(unsavedEndorsement, member.address)
+                        }
+                        leftFlatBorder
+                        disabled={unsavedEndorsement == savedEndorsement}
+                      >
+                        Endorse
+                      </Button>
+                    </EndorsementTableRowCell>
+                  </tr>
+                </EndorsementTableRowContainer>
+              );
+            })}
           </EndorsementTable>
         )}
       </EndorsementTableContainer>
