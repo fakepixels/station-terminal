@@ -24,6 +24,7 @@ import RegistrationBox from '../../components/RegistrationBox/RegistrationBox';
 import { FadeIn } from '../../shared/style/animation';
 import { useDispatch } from 'react-redux';
 import { applicationActions } from '../../state/application/applicationActions';
+import { ZERO_ADDRESS } from '../../utils/keys';
 
 declare const window: any;
 
@@ -130,7 +131,6 @@ const Home = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   let { orgName } = router.query;
-
   // TODO: This is to fix a type issue. Clean this up later
   if (Array.isArray(orgName)) orgName = orgName[0];
 
@@ -150,8 +150,13 @@ const Home = (): JSX.Element => {
 
     try {
       const address = await osFactoryContract.osMap(
-        ethers.utils.formatBytes32String('testOs'),
+        ethers.utils.formatBytes32String(
+          Array.isArray(orgName) ? orgName[0] : orgName,
+        ),
       );
+      if (address == ZERO_ADDRESS) {
+        window.location.replace('/');
+      }
       setOSContractAddress(address);
     } catch (err) {
       handleError(err);
