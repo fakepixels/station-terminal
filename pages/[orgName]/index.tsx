@@ -267,7 +267,7 @@ const Home = (): JSX.Element => {
         // Logged in state. check if alias is present
         if (contracts && contracts.MBR && account) {
           const res = await contracts.MBR.getAliasForMember(account);
-          if (res === 0) {
+          if (!res || Number(res) == 0) {
             setStep(2); //alias isn't present
           } else {
             setStep(3); // alias is present
