@@ -6,13 +6,22 @@ interface ButtonMainProps {
   disabled: boolean;
   width?: string;
   leftFlatBorder?: boolean;
+  selected?: boolean;
 }
 
 const ButtonMain = styled.button<ButtonMainProps>`
   color: ${(props) =>
-    props.secondary ? props.theme.colors.primary : props.theme.colors.black};
+    props.secondary && !props.selected
+      ? props.theme.colors.primary
+      : props.secondary && props.selected
+      ? props.theme.colors.black
+      : props.theme.colors.black};
   background-color: ${(props) =>
-    props.secondary ? props.theme.colors.black : props.theme.colors.green};
+    props.secondary && !props.selected
+      ? props.theme.colors.black
+      : props.secondary && props.selected
+      ? props.theme.colors.green
+      : props.theme.colors.green};
   padding: 9px 18px;
   outline: none;
   border: 1px solid
@@ -51,6 +60,7 @@ interface ownProps {
   icon?: string;
   onClick?: () => void;
   leftFlatBorder?: boolean;
+  selected?: boolean;
 }
 
 const Button = (props: ownProps): JSX.Element => {

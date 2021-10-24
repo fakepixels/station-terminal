@@ -1,13 +1,14 @@
 import styled from '@emotion/styled';
-import * as React from 'react';
-import { useContracts } from '../shared/contexts';
-import { Web3Provider } from '@ethersproject/providers';
+import { useState } from 'react';
 import Button from '../components/shared/Button';
 import ClaimRewardsModal from './ClaimRewards/ClaimRewardsPage';
 import GiveRewardsModal from './GiveRewards/GiveRewardsPage';
 import EndorsementModal from './Endorsement/EndorsementPage';
-import { useWeb3React } from '@web3-react/core';
-import { handleError } from '../utils/contract/helper';
+import ContributorProfileModal from './ContributorProfile/ContributorProfile';
+import { useDispatch } from 'react-redux';
+import { useApplicationState } from '../state/application/applicationSelectors';
+import { useAppState } from '../state/appState/appStateSelectors';
+import { appStateActions, MODAL } from '../state/appState/appStateActions';
 
 const FooterWrapper = styled.div`
   width: 100%;
@@ -82,22 +83,20 @@ const FooterActionButton = styled(Button)`
 `;
 
 const Footer = (): JSX.Element => {
-  const { contracts } = useContracts();
-  const { account } = useWeb3React<Web3Provider>();
+  const dispatch = useDispatch();
+  const layoutState = useAppState();
+  const applicationState = useApplicationState();
+  const appState = useApplicationState();
 
-  const [tokenSymbol, setTokenSymbol] = React.useState('');
-  const [totalTokenSupply, setTokenSupply] = React.useState(0);
-  const [totalTokensOwned, setTokensOwned] = React.useState(0);
-  // TODO: count staked tokens
-  const [totalTokensStaked] = React.useState(0);
-  const [totalEndorsementsReceived] = React.useState<number | null>(0);
+  const [totalTokensStaked] = useState<number>(0);
+  const [totalEndorsementsReceived] = useState<number | null>(0);
 
   const [isClaimRewardsModalOpen, setIsClaimRewardsModalOpen] =
-    React.useState(false);
+    useState<boolean>(false);
   const [isGiveRewardsModalOpen, setIsGiveRewardsModalOpen] =
-    React.useState(false);
+    useState<boolean>(false);
   const [isEndorsementModalOpen, setIsEndorsementModalOpen] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
 
   const handleCloseClaimRewardsModal = () => {
     setIsClaimRewardsModalOpen(false);
@@ -109,50 +108,9 @@ const Footer = (): JSX.Element => {
     setIsEndorsementModalOpen(false);
   };
 
-  const getSymbol = async () => {
-    if (!contracts || !contracts.TKN) return;
-    try {
-      const res = await contracts.TKN.symbol();
-      setTokenSymbol(res);
-    } catch (err) {
-      handleError(err);
-    }
-  };
-
-  const getTokenSupply = async () => {
-    if (!contracts || !contracts.TKN) return;
-    try {
-      const res = await contracts.TKN.totalSupply();
-      setTokenSupply(res.toNumber());
-    } catch (err) {
-      handleError(err);
-    }
-  };
-
-  const getTokenBalance = async (account: string) => {
-    if (!contracts || !contracts.TKN || !account) return;
-    try {
-      const res = await contracts.TKN.balanceOf(account);
-      setTokensOwned(res.toNumber());
-    } catch (err) {
-      handleError(err);
-    }
-  };
-
-  React.useEffect(() => {
-    getSymbol();
-    getTokenSupply();
-    getTokenBalance(account || '');
-  }, [contracts]);
-
-  React.useEffect(() => {
-    if (!account || !contracts) return;
-    getTokenBalance(account);
-  }, [account, contracts]);
-
   const calculatePctOwnership = (): number => {
-    if (!totalTokenSupply) return 0;
-    return (totalTokensOwned + totalTokensStaked) / totalTokenSupply;
+    if (!appState.tokenSupply || !appState.userBalance) return 0;
+    return (appState.userBalance + totalTokensStaked) / appState.tokenSupply;
   };
 
   return (
@@ -165,6 +123,10 @@ const Footer = (): JSX.Element => {
         isOpen={isEndorsementModalOpen}
         onRequestClose={handleCloseEndorsementModal}
       />
+      <ContributorProfileModal
+        isOpen={layoutState.currentModal === MODAL.CONTRIBUTOR_PROFILE}
+        onRequestClose={() => dispatch(appStateActions.setModal(null))}
+      />
       <GiveRewardsModal
         isOpen={isGiveRewardsModalOpen}
         onRequestClose={handleCloseGiveRewardsModal}
@@ -172,8 +134,8 @@ const Footer = (): JSX.Element => {
       <FooterWrapper>
         <FooterStats>
           <FooterStat
-            description={'YOUR TOTAL $' + tokenSymbol}
-            value={(totalTokensOwned + totalTokensStaked).toString()}
+            description={'YOUR TOTAL $' + applicationState.tokenSymbol}
+            value={(appState.userBalance || 0 + totalTokensStaked).toString()}
           />
           <FooterStat
             description={'YOUR OWNERSHIP'}

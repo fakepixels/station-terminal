@@ -20,6 +20,7 @@ export interface PeerRewardsRegistration {
 // TODO: Add complete types
 export interface Allocation {
   id: string;
-  from: Member;
+  from?: Member;
+  to?: Member;
   rewards: number;
 }

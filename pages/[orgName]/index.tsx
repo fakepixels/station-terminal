@@ -22,6 +22,8 @@ import Alias from '../../components/Login/AliasBox';
 import { handleError } from '../../utils/contract/helper';
 import RegistrationBox from '../../components/RegistrationBox/RegistrationBox';
 import { FadeIn } from '../../shared/style/animation';
+import { useDispatch } from 'react-redux';
+import { applicationActions } from '../../state/application/applicationActions';
 
 declare const window: any;
 
@@ -119,9 +121,11 @@ const moduleABIs = [
 
 const Home = (): JSX.Element => {
   const router = useRouter();
-  const tried = useEagerConnect();
+  const dispatch = useDispatch();
   const { setContracts, contracts } = useContracts();
+  const tried = useEagerConnect();
   const { account, library } = useWeb3React<Web3Provider>();
+
   const [step, setStep] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -189,6 +193,50 @@ const Home = (): JSX.Element => {
     setIsLoading(false);
   };
 
+  // fetch epoch
+  const getEpoch = async () => {
+    if (!contracts || !contracts.EPC) return;
+    try {
+      const epoch = await contracts.EPC.current();
+      dispatch(applicationActions.setCurrentEpoch(epoch));
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  // fetch symbol
+  const getSymbol = async () => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.symbol();
+      dispatch(applicationActions.setTokenSymbol(res));
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  // fetch token supply
+  const getTokenSupply = async () => {
+    if (!contracts || !contracts.TKN) return;
+    try {
+      const res = await contracts.TKN.totalSupply();
+      dispatch(applicationActions.setTotalTokenSupply(res.toNumber()));
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  // fetch token balance
+  const getTokenBalance = async (account: string) => {
+    if (!contracts || !contracts.TKN || !account) return;
+    try {
+      const res = await contracts.TKN.balanceOf(account);
+      dispatch(applicationActions.setUserBalance(res.toNumber()));
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
   useEffect(() => {
     getOS();
   }, [orgName, library]);
@@ -196,6 +244,13 @@ const Home = (): JSX.Element => {
   useEffect(() => {
     getModules();
   }, [osContractAddress]);
+
+  useEffect(() => {
+    getEpoch();
+    getSymbol();
+    getTokenSupply();
+    getTokenBalance(account || '');
+  }, [contracts]);
 
   // determine the state of user
   useEffect(() => {

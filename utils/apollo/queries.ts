@@ -96,17 +96,29 @@ export const PEER_REWARDS_REGISTERED_MEMBERS = gql`
 export const PEER_REWARDS_FOR_EPOCH = gql`
   query peerRewardsClaimable($os: String, $to: String, $epochNumber: Int) {
     committedAllocations(
-      where: {
-        os: $os
-        # $member: osAddress-memberAddress
-        to: $to
-        epochNumber: $epochNumber
-      }
+      where: { os: $os, to: $to, epochNumber: $epochNumber }
     ) {
       id
       epochNumber
       rewards
       from {
+        address
+        alias
+      }
+    }
+  }
+`;
+
+// rewards user has given to other members in the current epoch
+export const REWARD_GIVEN = gql`
+  query peerRewardsClaimable($os: String, $from: String, $epochNumber: Int) {
+    committedAllocations(
+      where: { os: $os, from: $from, epochNumber: $epochNumber }
+    ) {
+      id
+      epochNumber
+      rewards
+      to {
         address
         alias
       }

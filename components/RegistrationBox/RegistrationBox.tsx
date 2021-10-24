@@ -6,32 +6,20 @@ import Button from '../shared/Button';
 import { Body1 } from '../../shared/style/theme';
 import { useContracts } from '../../shared/contexts';
 import { handleError } from '../../utils/contract/helper';
+import { useApplicationState } from '../../state/application/applicationSelectors';
 
 const RegistrationBox = (): JSX.Element => {
   const { contracts } = useContracts();
   const { account } = useWeb3React<Web3Provider>();
+  const applicationState = useApplicationState();
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRegisteredForNextEpoch, setIsRegisteredForNextEpoch] =
     useState<boolean>(false);
 
-  const toggleOpen = () => {
+  const toggleOpen = (): void => {
     setIsOpen(!isOpen);
-  };
-
-  const getEpoch = async () => {
-    if (!contracts || !contracts.EPC || !contracts.PAY) return;
-    try {
-      const currentEpoch = await contracts.EPC.current();
-      const isRegistered = await contracts.PAY.eligibleForRewards(
-        currentEpoch + 1,
-        account,
-      );
-      setIsRegisteredForNextEpoch(isRegistered);
-    } catch (err) {
-      handleError(err);
-    }
   };
 
   const registerForPeerRewards = useCallback(async () => {
@@ -47,8 +35,20 @@ const RegistrationBox = (): JSX.Element => {
   }, [contracts]);
 
   useEffect(() => {
-    getEpoch();
-  }, [contracts]);
+    const calculateIsRegistered = async (): Promise<void> => {
+      if (!contracts || !contracts.PAY) return;
+      try {
+        const isRegistered = await contracts.PAY.eligibleForRewards(
+          applicationState.currentEpoch + 1,
+          account,
+        );
+        setIsRegisteredForNextEpoch(isRegistered);
+      } catch (err) {
+        handleError(err);
+      }
+    };
+    calculateIsRegistered();
+  }, [contracts, applicationState.currentEpoch]);
 
   return (
     <>
