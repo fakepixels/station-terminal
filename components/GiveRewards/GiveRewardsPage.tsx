@@ -271,7 +271,11 @@ const GiveRewards = (props: ownProps): JSX.Element => {
 
       {isRegistered && isCurrentEpoch && (
         <BottomCTAContainer>
-          <Button width="100%" onClick={() => commitAllocation()}>
+          <Button
+            disabled={hasCommitted}
+            width="100%"
+            onClick={() => commitAllocation()}
+          >
             COMMIT REWARDS
           </Button>
           <DisclaimerText>
@@ -322,6 +326,7 @@ const GiveRewards = (props: ownProps): JSX.Element => {
                       <tr>
                         <RewardTableCell>
                           <Input
+                            key={member.address}
                             value={unsavedReward}
                             type="number"
                             onChange={(

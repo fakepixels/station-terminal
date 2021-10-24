@@ -183,6 +183,7 @@ const EndorsementScreen = (): JSX.Element => {
                   <tr>
                     <EndorsementTableRowCell>
                       <Input
+                        key={member.address}
                         value={unsavedEndorsement}
                         type="number"
                         onChange={(e: any) =>
