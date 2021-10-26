@@ -41,21 +41,20 @@ const Login = (props: ownProps): JSX.Element => {
   const [alias, setAlias] = useState('');
 
   const submitAlias = async () => {
-    console.log(ethers.utils.formatBytes32String(alias));
     try {
       await contracts.MBR.setAlias(ethers.utils.formatBytes32String(alias));
-      finishAlias();
     } catch (err) {
       handleError(err);
     }
   };
 
   const listenToAliasEvent = () => {
-    if (!contracts || !contracts.TKN || !account) return;
+    if (!contracts || !contracts.MBR || !account) return;
+    console.log('Mounted');
     try {
-      contracts.MBR.on('MemberRegistered', (address, sender, alias, epoch) => {
-        console.log(address, sender, alias, epoch);
-        if (sender === account) finishAlias();
+      contracts.MBR.on('MemberRegistered', () => {
+        console.log('Registered');
+        finishAlias;
       });
     } catch (err: any) {
       console.log(err);
