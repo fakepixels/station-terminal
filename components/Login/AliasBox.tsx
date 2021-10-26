@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
+import { Web3Provider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { Body1, Heading1 } from '../../shared/style/theme';
 import Button from '../shared/Button';
 import Input from '../shared/Input/Index';
 import { useContracts } from '../../shared/contexts';
 import { handleError } from '../../utils/contract/helper';
+import { useWeb3React } from '@web3-react/core';
 
 const MasterContainer = styled.div`
   width: 400px;
@@ -34,6 +36,7 @@ interface ownProps {
 
 const Login = (props: ownProps): JSX.Element => {
   const { finishAlias } = props;
+  const { account } = useWeb3React<Web3Provider>();
   const { contracts } = useContracts();
   const [alias, setAlias] = useState('');
 
@@ -46,6 +49,22 @@ const Login = (props: ownProps): JSX.Element => {
       handleError(err);
     }
   };
+
+  const listenToAliasEvent = () => {
+    if (!contracts || !contracts.TKN || !account) return;
+    try {
+      contracts.MBR.on('MemberRegistered', (address, sender, alias, epoch) => {
+        console.log(address, sender, alias, epoch);
+        if (sender === account) finishAlias();
+      });
+    } catch (err: any) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    listenToAliasEvent();
+  }, [account, contracts]);
 
   return (
     <MasterContainer>

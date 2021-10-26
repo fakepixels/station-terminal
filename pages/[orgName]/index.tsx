@@ -252,9 +252,8 @@ const Home = (): JSX.Element => {
     getTokenBalance(account || '');
   }, [contracts]);
 
-  // determine the state of user
-  useEffect(() => {
-    const onMount = async () => {
+  const determineUserState = async () => {
+    try {
       setIsLoading(true);
       if (!account && tried) {
         setStep(1); // logged out state
@@ -262,14 +261,25 @@ const Home = (): JSX.Element => {
         // Logged in state. check if alias is present
         if (contracts && contracts.MBR && account) {
           const res = await contracts.MBR.getAliasForMember(account);
-          if (res === 0) {
+          setStep(2);
+          if (Number(res) === 0) {
             setStep(2); //alias isn't present
           } else {
             setStep(3); // alias is present
           }
         }
       }
+    } catch (err) {
+      handleError(err);
+    } finally {
       setIsLoading(false);
+    }
+  };
+
+  // determine the state of user
+  useEffect(() => {
+    const onMount = async () => {
+      await determineUserState();
     };
 
     onMount();
