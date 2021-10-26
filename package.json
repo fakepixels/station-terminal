@@ -39,6 +39,7 @@
     "@types/redux": "^3.6.0",
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
+    "dotenv": "^10.0.0",
     "ethers": "^5.4.7",
     "graphql": "^15.6.0",
     "lodash": "^4.17.21",

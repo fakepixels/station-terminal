@@ -29,6 +29,7 @@ const RegistrationBox = (): JSX.Element => {
       await contracts.PAY.register();
     } catch (err: any) {
       handleError(err);
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }

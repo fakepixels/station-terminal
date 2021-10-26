@@ -1,5 +1,15 @@
 import gql from 'graphql-tag';
 
+// Get the list of organizations in Default
+export const ORGS = gql`
+  {
+    defaultOSs {
+      id
+      name
+    }
+  }
+`;
+
 // Get the list of members for the "contributors" on the front page
 export const MEMBERS = gql`
   query members($os: String) {

@@ -21,15 +21,19 @@ const MintPage = (): JSX.Element => {
   const [availableEndorsements, setAvailableEndorsements] = useState<
     number | null
   >();
-  const [defAvailable, setDefAvailable] = useState<number | null>();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [tokenAvailable, setTokenAvailable] = useState<number | null>();
+  const [tokenAllowance, setTokenAllowance] = useState<number | null>();
   const [stakeAmount, setStakeAmount] = useState<number>(1); // min 1
   const [lockedWeeks, setLockedWeeks] = useState<number>(50); // min number of weeks
 
   const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoading(false);
     setStakeAmount(Number(e.target.value));
   };
 
   const onWeeksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoading(false);
     setLockedWeeks(Number(e.target.value));
   };
 
@@ -60,19 +64,59 @@ const MintPage = (): JSX.Element => {
     [contracts, account],
   );
 
-  const getTokenBalance = async (account: string) => {
+  const approveTokens = useCallback(
+    async (amount: number) => {
+      if (!contracts || !contracts.MBR) return;
+      try {
+        await contracts.TKN.approve(contracts.MBR.address, amount);
+        setLoading(true);
+      } catch (err: any) {
+        console.log(err);
+      }
+    },
+    [contracts, account],
+  );
+
+  const getTokenAllowance = async (account: string) => {
     if (!contracts || !contracts.TKN || !account) return;
     try {
-      const res = await contracts.TKN.balanceOf(account);
-      setDefAvailable(res.toNumber());
+      const res = await contracts.TKN.allowance(account, contracts.MBR.address);
+      setTokenAllowance(res.toNumber());
     } catch (err: any) {
       handleError(err);
     }
   };
 
+  const getTokenBalance = async (account: string) => {
+    if (!contracts || !contracts.TKN || !account) return;
+    try {
+      const res = await contracts.TKN.balanceOf(account);
+      setTokenAvailable(res.toNumber());
+    } catch (err: any) {
+      handleError(err);
+    }
+  };
+
+  const listenToApprovalEvent = () => {
+    if (!contracts || !contracts.TKN || !account) return;
+    try {
+      contracts.TKN.on('Approval', (owner, spender, amount) => {
+        amount = amount.toNumber();
+        if (owner == account && amount >= stakeAmount) {
+          setTokenAllowance(amount);
+          setLoading(false);
+        }
+      });
+    } catch (err: any) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     fetchAvailableEndorsements();
+    getTokenAllowance(account || '');
     getTokenBalance(account || '');
+    listenToApprovalEvent();
   }, [contracts, account]);
 
   return (
@@ -89,7 +133,7 @@ const MintPage = (): JSX.Element => {
 
           <MintRowContainer>
             <Body1>Total $DEF available</Body1>
-            <Body1>{defAvailable}</Body1>
+            <Body1>{tokenAvailable}</Body1>
           </MintRowContainer>
         </MintHeaderContainer>
         <Divider />
@@ -128,9 +172,16 @@ const MintPage = (): JSX.Element => {
       <BottomCTAContainer>
         <Button
           width="100%"
-          onClick={() => mintEndorsements(lockedWeeks, stakeAmount)}
+          disabled={loading}
+          onClick={() => {
+            if (tokenAllowance && tokenAllowance < stakeAmount) {
+              approveTokens(stakeAmount);
+            } else {
+              mintEndorsements(lockedWeeks, stakeAmount);
+            }
+          }}
         >
-          MINT
+          {tokenAllowance && tokenAllowance < stakeAmount ? 'Approve' : 'Mint'}
         </Button>
       </BottomCTAContainer>
     </MintPageMasterContainer>
